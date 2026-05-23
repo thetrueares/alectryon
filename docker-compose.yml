@@ -1,8 +1,19 @@
 services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
   api:
     build: ./api
     ports:
       - "8080:8080"
+    depends_on:
+      - mongodb
     networks:
       - app-network
 
@@ -18,3 +29,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  mongo-data:
