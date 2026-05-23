@@ -1,0 +1,35 @@
+name: Go API CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'api/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'api/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.3'
+          cache-dependency-path: api/go.sum
+
+      - name: Install dependencies
+        run: go mod download
+        working-directory: api
+
+      - name: Build
+        run: go build -v ./...
+        working-directory: api
+
+      - name: Test
+        run: go test -v ./...
+        working-directory: api
