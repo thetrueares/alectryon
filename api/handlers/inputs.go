@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.iain.rocks/alectryon/api/models"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -14,18 +15,20 @@ type InputListResponse struct {
 }
 
 type InputResponse struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	Type      string `json:"type"`
-	Active    bool   `json:"active"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	Id        string         `json:"id"`
+	Name      string         `json:"name"`
+	Type      string         `json:"type"`
+	Active    bool           `json:"active"`
+	Options   map[string]any `json:"options"`
+	CreatedAt string         `json:"created_at"`
+	UpdatedAt string         `json:"updated_at"`
 }
 
 type InputCreateRequest struct {
-	Name   string `json:"name"`
-	Type   string `json:"type"`
-	Active bool   `json:"active"`
+	Name    string         `json:"name"`
+	Type    string         `json:"type"`
+	Active  bool           `json:"active"`
+	Options map[string]any `json:"options"`
 }
 
 type InputHandlers struct {
@@ -76,10 +79,11 @@ func (lh InputHandlers) CreateInputHandler(c *gin.Context) {
 
 func ConvertCreateRequestToModel(input InputCreateRequest) models.InputModel {
 	return models.InputModel{
-		// ID:        bson.NewObjectID(),
+		ID:        bson.NewObjectID(),
 		Type:      models.InputType(input.Type),
 		Name:      input.Name,
 		Active:    input.Active,
+		Options:   input.Options,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -92,6 +96,7 @@ func ConvertModelToResponse(input models.InputModel) InputResponse {
 		Type:      string(input.Type),
 		Name:      input.Name,
 		Active:    input.Active,
+		Options:   input.Options,
 		CreatedAt: input.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: input.UpdatedAt.Format(time.RFC3339),
 	}

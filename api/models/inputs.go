@@ -18,12 +18,13 @@ const (
 )
 
 type InputModel struct {
-	ID        bson.ObjectID `bson:"_id"`
-	Name      string        `bson:"name"`
-	Type      InputType     `bson:"type"`
-	Active    bool          `bson:"active"`
-	CreatedAt time.Time     `bson:"created_at"`
-	UpdatedAt time.Time     `bson:"updated_at,omitempty"`
+	ID        bson.ObjectID  `bson:"_id"`
+	Name      string         `bson:"name"`
+	Type      InputType      `bson:"type"`
+	Active    bool           `bson:"active"`
+	Options   map[string]any `bson:"options"`
+	CreatedAt time.Time      `bson:"created_at"`
+	UpdatedAt time.Time      `bson:"updated_at,omitempty"`
 }
 
 type InputRepository struct {
