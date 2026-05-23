@@ -23,7 +23,7 @@ func TestConvertModelToResponse(t *testing.T) {
 
 	outputResponse := handlers.ConvertModelToResponse(inputModel)
 
-	assert.Equal(t, inputModel.ID.String(), outputResponse.Id)
+	assert.Equal(t, inputModel.ID.Hex(), outputResponse.Id)
 	assert.Equal(t, string(inputModel.Type), outputResponse.Type)
 	assert.Equal(t, inputModel.Active, outputResponse.Active)
 	assert.Equal(t, inputModel.CreatedAt.Format(time.RFC3339), outputResponse.CreatedAt)
