@@ -6,7 +6,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type InputType string
@@ -31,16 +30,26 @@ type InputRepository struct {
 	collection *mongo.Collection
 }
 
+func (ir InputRepository) Save(input InputModel) error {
+
+	_, err := ir.collection.InsertOne(context.TODO(), input)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (ir InputRepository) GetAll() ([]InputModel, error) {
-	opts := options.Find().SetSort(bson.D{{"created_at", 1}})
-	cursor, err := ir.collection.Find(context.TODO(), nil, opts)
+	cursor, err := ir.collection.Find(context.TODO(), bson.D{})
 
 	if err != nil {
 		return nil, err
 	}
 
 	var results []InputModel
-	if err = cursor.All(context.TODO(), &results); err != nil {
+	if err = cursor.All(context.TODO(), &results); err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
 
