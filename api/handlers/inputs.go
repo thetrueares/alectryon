@@ -98,6 +98,19 @@ func (lh InputHandlers) ToogleInputHandler(c *gin.Context) {
 	c.JSON(http.StatusAccepted, ConvertModelToResponse(input))
 }
 
+func (lh InputHandlers) DeleteInputHandler(c *gin.Context) {
+
+	id := c.Param("id")
+	err := lh.repository.DeleteById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error", "message": err.Error(), "id": id})
+
+		return
+	}
+
+	c.JSON(http.StatusAccepted, gin.H{"message": "success"})
+}
+
 func ConvertCreateRequestToModel(input InputCreateRequest) models.InputModel {
 	return models.InputModel{
 		ID:        bson.NewObjectID(),

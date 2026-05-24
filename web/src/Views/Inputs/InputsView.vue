@@ -5,6 +5,7 @@ const inputs = ref([])
 const loading = ref(true)
 const error = ref(null)
 const togglingId = ref(null)
+const deletingId = ref(null)
 
 const fetchInputs = async () => {
   try {
@@ -32,7 +33,7 @@ const toggleStatus = async (input) => {
     togglingId.value = input.id
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
     const response = await fetch(`${apiUrl}/inputs/${input.id}/toggle`, {
-      method: 'POST', // Assuming POST for a toggle action
+      method: 'POST',
     })
 
     if (!response.ok) {
@@ -51,6 +52,31 @@ const toggleStatus = async (input) => {
     alert('Error updating status: ' + e.message)
   } finally {
     togglingId.value = null
+  }
+}
+
+const deleteInput = async (input) => {
+  if (deletingId.value) return
+  if (!confirm(`Are you sure you want to delete "${input.name}"?`)) return
+
+  try {
+    deletingId.value = input.id
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+    const response = await fetch(`${apiUrl}/inputs/${input.id}`, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete input: ${response.status}`)
+    }
+
+    // Remove from local state
+    inputs.value = inputs.value.filter(i => i.id !== input.id)
+  } catch (e) {
+    console.error('Delete error:', e)
+    alert('Error deleting input: ' + e.message)
+  } finally {
+    deletingId.value = null
   }
 }
 
@@ -111,19 +137,27 @@ const formatDate = (dateString) => {
               </span>
             </td>
             <td class="px-6 py-4">{{ formatDate(input.created_at) }}</td>
-            <td class="px-6 py-4 text-right">
+            <td class="px-6 py-4 text-right space-x-2">
               <button 
                 @click="toggleStatus(input)"
-                :disabled="togglingId === input.id"
+                :disabled="togglingId === input.id || deletingId === input.id"
                 :class="[
                   'text-xs font-semibold px-3 py-1 rounded border transition-all',
                   input.active 
-                    ? 'border-red-200 text-red-600 hover:bg-red-50' 
+                    ? 'border-gray-200 text-gray-600 hover:bg-gray-50' 
                     : 'border-green-200 text-green-600 hover:bg-green-50',
-                  togglingId === input.id ? 'opacity-50 cursor-not-allowed' : ''
+                  (togglingId === input.id || deletingId === input.id) ? 'opacity-50 cursor-not-allowed' : ''
                 ]"
               >
                 {{ togglingId === input.id ? 'Updating...' : (input.active ? 'Deactivate' : 'Activate') }}
+              </button>
+              
+              <button 
+                @click="deleteInput(input)"
+                :disabled="deletingId === input.id || togglingId === input.id"
+                class="text-xs font-semibold px-3 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {{ deletingId === input.id ? 'Deleting...' : 'Delete' }}
               </button>
             </td>
           </tr>
