@@ -6,6 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type InputType string
@@ -27,13 +28,18 @@ type InputModel struct {
 	UpdatedAt time.Time      `bson:"updated_at,omitempty"`
 }
 
+func NewInputRepository(collection *mongo.Collection) *InputRepository {
+	return &InputRepository{collection: collection}
+}
+
 type InputRepository struct {
 	collection *mongo.Collection
 }
 
 func (ir InputRepository) Save(input InputModel) error {
 
-	_, err := ir.collection.InsertOne(context.TODO(), input)
+	opts := options.UpdateOne().SetUpsert(true)
+	_, err := ir.collection.UpdateOne(context.TODO(), bson.M{"_id": input.ID}, bson.D{{"$set", input}}, opts)
 
 	if err != nil {
 		return err
@@ -57,6 +63,13 @@ func (ir InputRepository) GetAll() ([]InputModel, error) {
 	return results, nil
 }
 
-func NewInputRepository(collection *mongo.Collection) *InputRepository {
-	return &InputRepository{collection: collection}
+func (ir InputRepository) GetById(id string) (InputModel, error) {
+	var result InputModel
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return result, err
+	}
+	err = ir.collection.FindOne(context.TODO(), bson.M{"_id": objID}).Decode(&result)
+
+	return result, err
 }

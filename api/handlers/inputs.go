@@ -77,6 +77,27 @@ func (lh InputHandlers) CreateInputHandler(c *gin.Context) {
 	})
 }
 
+func (lh InputHandlers) ToogleInputHandler(c *gin.Context) {
+	id := c.Param("id")
+	input, err := lh.repository.GetById(id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error", "message": err.Error(), "id": id})
+
+		return
+	}
+	input.Active = !input.Active
+	err = lh.repository.Save(input)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error.", "message": err.Error()})
+
+		return
+	}
+
+	c.JSON(http.StatusAccepted, input)
+}
+
 func ConvertCreateRequestToModel(input InputCreateRequest) models.InputModel {
 	return models.InputModel{
 		ID:        bson.NewObjectID(),

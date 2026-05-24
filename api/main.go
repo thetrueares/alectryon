@@ -37,6 +37,7 @@ func main() {
 
 	r.GET("/inputs", inputHandlers.ListInputHandler)
 	r.POST("/inputs", inputHandlers.CreateInputHandler)
+	r.POST("/inputs/:id/toggle", inputHandlers.ToogleInputHandler)
 
 	r.Run(":8080")
 }
