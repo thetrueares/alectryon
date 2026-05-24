@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.iain.rocks/alectryon/api/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type InputListResponse struct {
@@ -39,7 +38,7 @@ type InputUpdateRequest struct {
 }
 
 type InputHandlers struct {
-	repository models.InputRepository
+	repository *models.InputRepository
 }
 
 func (lh InputHandlers) AddHandlers(r *gin.Engine) {
@@ -205,7 +204,6 @@ func ConvertModelToResponse(input models.InputModel) InputResponse {
 	}
 }
 
-func NewInputHandlers(collection *mongo.Collection) *InputHandlers {
-	repository := models.NewInputRepository(collection)
-	return &InputHandlers{repository: *repository}
+func NewInputHandlers(repository *models.InputRepository) *InputHandlers {
+	return &InputHandlers{repository: repository}
 }
