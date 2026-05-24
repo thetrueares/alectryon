@@ -11,7 +11,7 @@ import (
 )
 
 type InputListResponse struct {
-	Inputs []InputResponse
+	Inputs []InputResponse `json:"inputs"`
 }
 
 type InputResponse struct {

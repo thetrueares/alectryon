@@ -1,10 +1,32 @@
 <template>
-  <div class="min-h-screen bg-gray-100 flex flex-col items-center p-8">
-    <nav class="mb-8 flex space-x-4">
-      <router-link to="/" class="text-blue-600 hover:text-blue-800 font-medium">Home</router-link>
-      <router-link to="/inputs" class="text-blue-600 hover:text-blue-800 font-medium">Inputs</router-link>
-    </nav>
-    <router-view></router-view>
+  <div class="flex min-h-screen bg-gray-100 text-gray-900">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-black text-white shadow-xl flex-shrink-0">
+      <div class="p-6">
+        <h2 class="text-xl font-bold">Alectryon</h2>
+      </div>
+      <nav class="mt-4">
+        <router-link 
+          to="/" 
+          class="block px-6 py-3 transition-colors duration-200 hover:bg-gray-800"
+          active-class="bg-gray-900 border-r-4 border-blue-500"
+        >
+          Home
+        </router-link>
+        <router-link 
+          to="/inputs" 
+          class="block px-6 py-3 transition-colors duration-200 hover:bg-gray-800"
+          active-class="bg-gray-900 border-r-4 border-blue-500"
+        >
+          Inputs
+        </router-link>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-12">
+      <router-view></router-view>
+    </main>
   </div>
 </template>
 

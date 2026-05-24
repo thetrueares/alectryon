@@ -16,10 +16,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="bg-white p-6 rounded-lg shadow-md max-w-md w-full text-center">
-    <h1 class="text-3xl font-bold text-blue-600 mb-4">Home</h1>
-    <p class="text-gray-700">Message from API: 
-      <span class="font-mono bg-gray-200 px-2 py-1 rounded">{{ message }}</span>
-    </p>
+  <div>
+    <h1 class="text-4xl font-bold text-black mb-8">Home</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 max-w-2xl">
+      <p class="text-gray-700">Message from API: 
+        <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ message }}</span>
+      </p>
+    </div>
   </div>
 </template>
