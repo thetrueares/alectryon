@@ -42,6 +42,16 @@ type InputHandlers struct {
 	repository models.InputRepository
 }
 
+func (lh InputHandlers) AddHandlers(r *gin.Engine) {
+
+	r.GET("/inputs", lh.ListInputHandler)
+	r.POST("/inputs", lh.CreateInputHandler)
+	r.POST("/inputs/:id/toggle", lh.ToogleInputHandler)
+	r.GET("/inputs/:id", lh.FetchInputHandler)
+	r.POST("/inputs/:id", lh.UpdateInputHandler)
+	r.DELETE("/inputs/:id", lh.DeleteInputHandler)
+}
+
 func (lh InputHandlers) ListInputHandler(c *gin.Context) {
 
 	inputs, err := lh.repository.GetAll()

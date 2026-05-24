@@ -34,13 +34,7 @@ func main() {
 			"message": "Hello World from Gin!",
 		})
 	})
-
-	r.GET("/inputs", inputHandlers.ListInputHandler)
-	r.POST("/inputs", inputHandlers.CreateInputHandler)
-	r.POST("/inputs/:id/toggle", inputHandlers.ToogleInputHandler)
-	r.GET("/inputs/:id", inputHandlers.FetchInputHandler)
-	r.POST("/inputs/:id", inputHandlers.UpdateInputHandler)
-	r.DELETE("/inputs/:id", inputHandlers.DeleteInputHandler)
+	inputHandlers.AddHandlers(r)
 
 	r.Run(":8080")
 }
