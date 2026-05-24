@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from './Views/HomeView.vue'
 import InputsView from './Views/Inputs/InputsView.vue'
 import CreateInputView from './Views/Inputs/CreateInputView.vue'
+import UpdateInputView from './Views/Inputs/UpdateInputView.vue'
 
 const routes = [
   { 
@@ -18,6 +19,11 @@ const routes = [
     path: '/inputs/create', 
     component: CreateInputView,
     meta: { title: 'Create Input - Alectryon' }
+  },
+  { 
+    path: '/inputs/:id/edit', 
+    component: UpdateInputView,
+    meta: { title: 'Update Input - Alectryon' }
   },
 ]
 

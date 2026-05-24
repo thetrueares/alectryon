@@ -31,6 +31,13 @@ type InputCreateRequest struct {
 	Options map[string]any `json:"options"`
 }
 
+type InputUpdateRequest struct {
+	Name    string         `json:"name"`
+	Type    string         `json:"type"`
+	Active  bool           `json:"active"`
+	Options map[string]any `json:"options"`
+}
+
 type InputHandlers struct {
 	repository models.InputRepository
 }
@@ -77,6 +84,49 @@ func (lh InputHandlers) CreateInputHandler(c *gin.Context) {
 	})
 }
 
+func (lh InputHandlers) FetchInputHandler(c *gin.Context) {
+	id := c.Param("id")
+	input, err := lh.repository.GetById(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error", "message": err.Error(), "id": id})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, ConvertModelToResponse(input))
+}
+
+func (lh InputHandlers) UpdateInputHandler(c *gin.Context) {
+
+	id := c.Param("id")
+	input, err := lh.repository.GetById(id)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error", "message": err.Error(), "id": id})
+
+		return
+	}
+
+	var createBody InputUpdateRequest
+
+	if err := c.ShouldBindJSON(&createBody); err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"error": "Invalid body"})
+		return
+	}
+
+	input = UpdateInputFromUpdateRequest(input, createBody)
+	err = lh.repository.Save(input)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error", "message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Input updated successfully",
+	})
+}
+
 func (lh InputHandlers) ToogleInputHandler(c *gin.Context) {
 	id := c.Param("id")
 	input, err := lh.repository.GetById(id)
@@ -109,6 +159,15 @@ func (lh InputHandlers) DeleteInputHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusAccepted, gin.H{"message": "success"})
+}
+
+func UpdateInputFromUpdateRequest(original models.InputModel, update InputUpdateRequest) models.InputModel {
+	original.Name = update.Name
+	original.Type = models.InputType(update.Type)
+	original.Active = update.Active
+	original.UpdatedAt = time.Now()
+
+	return original
 }
 
 func ConvertCreateRequestToModel(input InputCreateRequest) models.InputModel {

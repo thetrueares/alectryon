@@ -138,6 +138,13 @@ const formatDate = (dateString) => {
             </td>
             <td class="px-6 py-4">{{ formatDate(input.created_at) }}</td>
             <td class="px-6 py-4 text-right space-x-2">
+              <router-link
+                :to="`/inputs/${input.id}/edit`"
+                class="text-xs font-semibold px-3 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all inline-block"
+              >
+                Edit
+              </router-link>
+
               <button 
                 @click="toggleStatus(input)"
                 :disabled="togglingId === input.id || deletingId === input.id"
