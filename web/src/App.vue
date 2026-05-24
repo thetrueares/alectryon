@@ -16,16 +16,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main>
-    <h1>Vue + Gin</h1>
-    <p>Message from API: {{ message }}</p>
+  <main class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-8">
+    <div class="bg-white p-6 rounded-lg shadow-md max-w-md w-full text-center">
+      <h1 class="text-3xl font-bold text-blue-600 mb-4">Vue + Gin</h1>
+      <p class="text-gray-700">Message from API: 
+        <span class="font-mono bg-gray-200 px-2 py-1 rounded">{{ message }}</span>
+      </p>
+    </div>
   </main>
 </template>
 
 <style>
-#app {
-  font-family: Arial, sans-serif;
-  padding: 2rem;
-  text-align: center;
-}
 </style>
