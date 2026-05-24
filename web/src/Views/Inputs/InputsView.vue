@@ -35,7 +35,15 @@ const formatDate = (dateString) => {
 
 <template>
   <div>
-    <h1 class="text-4xl font-bold text-black mb-8">Inputs</h1>
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-4xl font-bold text-black">Inputs</h1>
+      <router-link
+        to="/inputs/create"
+        class="px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-800 transition-all"
+      >
+        + Create
+      </router-link>
+    </div>
 
     <div v-if="loading" class="text-gray-600">
       Loading inputs...
