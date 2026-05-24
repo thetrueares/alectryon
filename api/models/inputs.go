@@ -73,3 +73,14 @@ func (ir InputRepository) GetById(id string) (InputModel, error) {
 
 	return result, err
 }
+
+func (ir InputRepository) DeleteById(id string) error {
+
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = ir.collection.DeleteOne(context.TODO(), bson.M{"_id": objID})
+	return err
+}

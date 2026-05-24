@@ -95,7 +95,7 @@ func (lh InputHandlers) ToogleInputHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusAccepted, input)
+	c.JSON(http.StatusAccepted, ConvertModelToResponse(input))
 }
 
 func ConvertCreateRequestToModel(input InputCreateRequest) models.InputModel {
