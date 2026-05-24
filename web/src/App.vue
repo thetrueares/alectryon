@@ -1,29 +1,11 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-
-const message = ref('Loading...')
-
-onMounted(async () => {
-  try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
-    const response = await fetch(apiUrl)
-    const data = await response.json()
-    message.value = data.message
-  } catch (error) {
-    message.value = 'Error fetching from API: ' + error.message
-  }
-})
-</script>
-
 <template>
-  <main class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-8">
-    <div class="bg-white p-6 rounded-lg shadow-md max-w-md w-full text-center">
-      <h1 class="text-3xl font-bold text-blue-600 mb-4">Vue + Gin</h1>
-      <p class="text-gray-700">Message from API: 
-        <span class="font-mono bg-gray-200 px-2 py-1 rounded">{{ message }}</span>
-      </p>
-    </div>
-  </main>
+  <div class="min-h-screen bg-gray-100 flex flex-col items-center p-8">
+    <nav class="mb-8 flex space-x-4">
+      <router-link to="/" class="text-blue-600 hover:text-blue-800 font-medium">Home</router-link>
+      <router-link to="/inputs" class="text-blue-600 hover:text-blue-800 font-medium">Inputs</router-link>
+    </nav>
+    <router-view></router-view>
+  </div>
 </template>
 
 <style>
