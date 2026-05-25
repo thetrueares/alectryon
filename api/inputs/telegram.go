@@ -8,11 +8,12 @@ import (
 
 	"github.com/go-telegram/bot"
 	telegrammodels "github.com/go-telegram/bot/models"
+	"go.iain.rocks/alectryon/api/engine"
 	"go.iain.rocks/alectryon/api/models"
 )
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
-func StartTelegramBot(input models.InputModel, repository *models.HistoryRepository) error {
+func StartTelegramBot(input models.InputModel, repository *models.HistoryRepository, ai engine.AiInterface) error {
 	if input.Type != models.InputTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", input.Type)
 	}
@@ -31,7 +32,7 @@ func StartTelegramBot(input models.InputModel, repository *models.HistoryReposit
 		return errors.New("bot_token is empty")
 	}
 
-	handler := NewTelegramHandler(repository)
+	handler := NewTelegramHandler(repository, ai)
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(handler.handle),
@@ -50,12 +51,13 @@ func StartTelegramBot(input models.InputModel, repository *models.HistoryReposit
 	return nil
 }
 
-func NewTelegramHandler(repository *models.HistoryRepository) *TelegramHandler {
-	return &TelegramHandler{repository: repository}
+func NewTelegramHandler(repository *models.HistoryRepository, ai engine.AiInterface) *TelegramHandler {
+	return &TelegramHandler{repository: repository, ai: ai}
 }
 
 type TelegramHandler struct {
 	repository *models.HistoryRepository
+	ai         engine.AiInterface
 }
 
 func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegrammodels.Update) {
@@ -80,9 +82,11 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 
 	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
 
-	history.Response = update.Message.Text
+	aiOutput := th.ai.Process(engine.Input{Text: update.Message.Text})
+	history.Response = aiOutput.Text
 	th.repository.Save(history)
-	th.sendMessage(ctx, b, update.Message.Chat.ID, sender, update.Message.Text)
+
+	th.sendMessage(ctx, b, update.Message.Chat.ID, sender, aiOutput.Text)
 }
 
 func (th TelegramHandler) sendMessage(ctx context.Context, b *bot.Bot, chatId int64, user, message string) {

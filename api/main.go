@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go.iain.rocks/alectryon/api/engine"
+	"go.iain.rocks/alectryon/api/engine/vendor"
 	"go.iain.rocks/alectryon/api/handlers"
 	"go.iain.rocks/alectryon/api/inputs"
 	"go.iain.rocks/alectryon/api/models"
@@ -35,13 +38,15 @@ func main() {
 
 	historyRepository := models.NewHistoryRepository(historyCollection)
 
+	engine, err := vendor.NewGemini(context.TODO(), "AIzaSyBPhglWQk5ziRBrtD0_V6WC5CBM8jtKmp8")
+
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello World from Gin!",
 		})
 	})
 	inputHandlers.AddHandlers(r)
-	go startInputs(repository, historyRepository)
+	go startInputs(repository, historyRepository, engine)
 
 	r.Run(":8080")
 }
@@ -54,7 +59,7 @@ func createMongoDb() (*mongo.Client, error) {
 	return mongo.Connect(opts)
 }
 
-func startInputs(repository *models.InputRepository, historyRepository *models.HistoryRepository) {
+func startInputs(repository *models.InputRepository, historyRepository *models.HistoryRepository, engine engine.AiInterface) {
 	inputModels, err := repository.GetAll()
 
 	if err != nil {
@@ -63,7 +68,7 @@ func startInputs(repository *models.InputRepository, historyRepository *models.H
 
 	for _, input := range inputModels {
 		if input.Type == models.InputTypeTelegramBot {
-			go inputs.StartTelegramBot(input, historyRepository)
+			go inputs.StartTelegramBot(input, historyRepository, engine)
 		}
 	}
 }
