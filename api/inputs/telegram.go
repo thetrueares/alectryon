@@ -79,12 +79,13 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 	th.repository.Save(history)
 
 	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
+
+	history.Response = update.Message.Text
+	th.repository.Save(history)
 	th.sendMessage(ctx, b, update.Message.Chat.ID, sender, update.Message.Text)
 }
 
 func (th TelegramHandler) sendMessage(ctx context.Context, b *bot.Bot, chatId int64, user, message string) {
-	historyOut := models.NewOutwardMessage(user, message)
-	th.repository.Save(historyOut)
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: chatId,
 		Text:   message,

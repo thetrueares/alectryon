@@ -14,7 +14,8 @@ type HistoryModel struct {
 	User      string        `bson:"user"`
 	Direction string        `bson:"direction"`
 	Message   string        `bson:"message"`
-	CreatedAt time.Time     `bson:"created_at"`
+	Response  string        `bson:"response"`
+	CreatedAt *time.Time    `bson:"created_at"`
 	UpdatedAt time.Time     `bson:"updated_at,omitempty"`
 }
 
@@ -28,6 +29,12 @@ type HistoryRepository struct {
 
 func (hr HistoryRepository) Save(history HistoryModel) error {
 
+	now := time.Now()
+	if history.CreatedAt == nil {
+		history.CreatedAt = &now
+	}
+
+	history.UpdatedAt = now
 	opts := options.UpdateOne().SetUpsert(true)
 	_, err := hr.collection.UpdateOne(context.TODO(), bson.M{"_id": history.ID}, bson.D{{"$set", history}}, opts)
 
@@ -52,7 +59,5 @@ func newMessage(user, message, direction string) HistoryModel {
 		User:      user,
 		Direction: direction,
 		Message:   message,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
 	}
 }
