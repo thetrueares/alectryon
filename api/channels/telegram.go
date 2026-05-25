@@ -1,4 +1,4 @@
-package inputs
+package channels
 
 import (
 	"context"
@@ -13,12 +13,12 @@ import (
 )
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
-func StartTelegramBot(input models.InputModel, repository *models.HistoryRepository, ai engine.AiInterface) error {
-	if input.Type != models.InputTypeTelegramBot {
-		return fmt.Errorf("invalid input type for telegram: %s", input.Type)
+func StartTelegramBot(channel models.ChannelEntity, repository *models.HistoryRepository, ai engine.AiInterface) error {
+	if channel.Type != models.InputTypeTelegramBot {
+		return fmt.Errorf("invalid input type for telegram: %s", channel.Type)
 	}
 
-	token, ok := input.Options["bot_token"]
+	token, ok := channel.Options["bot_token"]
 	if !ok {
 		return errors.New("bot_token not found in input options")
 	}
@@ -43,7 +43,7 @@ func StartTelegramBot(input models.InputModel, repository *models.HistoryReposit
 		return fmt.Errorf("failed to create telegram bot: %w", err)
 	}
 
-	log.Printf("Starting Telegram bot for input: %s (%s)", input.Name, input.ID.Hex())
+	log.Printf("Starting Telegram bot for input: %s (%s)", channel.Name, channel.ID.Hex())
 
 	// Start the bot in a goroutine
 	go b.Start(context.TODO())

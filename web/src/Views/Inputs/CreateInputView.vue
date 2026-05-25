@@ -26,7 +26,7 @@ const handleCreate = async (formData) => {
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
     }
 
-    router.push('/inputs')
+    router.push('/channels')
   } catch (e) {
     error.value = 'Error creating input: ' + e.message
     console.error(e)
@@ -38,14 +38,14 @@ const handleCreate = async (formData) => {
 
 <template>
   <div>
-    <h1 class="text-4xl font-bold text-black mb-8">Create Input</h1>
+    <h1 class="text-4xl font-bold text-black mb-8">Create Channel</h1>
 
     <div v-if="error" class="mb-6 bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 max-w-2xl">
       {{ error }}
     </div>
 
     <InputForm
-      submit-button-text="Create Input"
+      submit-button-text="Create Channel"
       loading-text="Creating..."
       :is-saving="loading"
       @submit="handleCreate"

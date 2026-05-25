@@ -18,7 +18,7 @@ const (
 	InputTypeVideo       InputType = "video"
 )
 
-type InputModel struct {
+type ChannelEntity struct {
 	ID        bson.ObjectID  `bson:"_id"`
 	Name      string         `bson:"name"`
 	Type      InputType      `bson:"type"`
@@ -28,15 +28,15 @@ type InputModel struct {
 	UpdatedAt time.Time      `bson:"updated_at,omitempty"`
 }
 
-func NewInputRepository(collection *mongo.Collection) *InputRepository {
-	return &InputRepository{collection: collection}
+func NewChannelRepository(collection *mongo.Collection) *ChannelRepository {
+	return &ChannelRepository{collection: collection}
 }
 
-type InputRepository struct {
+type ChannelRepository struct {
 	collection *mongo.Collection
 }
 
-func (ir InputRepository) Save(input InputModel) error {
+func (ir ChannelRepository) Save(input ChannelEntity) error {
 
 	opts := options.UpdateOne().SetUpsert(true)
 	_, err := ir.collection.UpdateOne(context.TODO(), bson.M{"_id": input.ID}, bson.D{{"$set", input}}, opts)
@@ -48,14 +48,14 @@ func (ir InputRepository) Save(input InputModel) error {
 	return nil
 }
 
-func (ir InputRepository) GetAll() ([]InputModel, error) {
+func (ir ChannelRepository) GetAll() ([]ChannelEntity, error) {
 	cursor, err := ir.collection.Find(context.TODO(), bson.D{})
 
 	if err != nil {
 		return nil, err
 	}
 
-	var results []InputModel
+	var results []ChannelEntity
 	if err = cursor.All(context.TODO(), &results); err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
@@ -63,8 +63,8 @@ func (ir InputRepository) GetAll() ([]InputModel, error) {
 	return results, nil
 }
 
-func (ir InputRepository) GetById(id string) (InputModel, error) {
-	var result InputModel
+func (ir ChannelRepository) GetById(id string) (ChannelEntity, error) {
+	var result ChannelEntity
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return result, err
@@ -74,7 +74,7 @@ func (ir InputRepository) GetById(id string) (InputModel, error) {
 	return result, err
 }
 
-func (ir InputRepository) DeleteById(id string) error {
+func (ir ChannelRepository) DeleteById(id string) error {
 
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {

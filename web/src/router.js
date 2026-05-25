@@ -11,19 +11,19 @@ const routes = [
     meta: { title: 'Home - Alectryon' }
   },
   { 
-    path: '/inputs', 
+    path: '/channels', 
     component: InputsView,
-    meta: { title: 'Inputs - Alectryon' }
+    meta: { title: 'Channels - Alectryon' }
   },
   { 
-    path: '/inputs/create', 
+    path: '/channels/create', 
     component: CreateInputView,
-    meta: { title: 'Create Input - Alectryon' }
+    meta: { title: 'Create Channel - Alectryon' }
   },
   { 
-    path: '/inputs/:id/edit', 
+    path: '/channels/:id/edit', 
     component: UpdateInputView,
-    meta: { title: 'Update Input - Alectryon' }
+    meta: { title: 'Update Channel - Alectryon' }
   },
 ]
 

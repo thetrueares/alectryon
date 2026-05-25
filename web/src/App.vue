@@ -14,11 +14,11 @@
           Home
         </router-link>
         <router-link 
-          to="/inputs" 
+          to="/channels" 
           class="block px-6 py-3 transition-colors duration-200 hover:bg-gray-800"
           active-class="bg-gray-900 border-r-4 border-blue-500"
         >
-          Inputs
+          Channels
         </router-link>
       </nav>
     </aside>

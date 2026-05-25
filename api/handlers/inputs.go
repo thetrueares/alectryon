@@ -37,21 +37,25 @@ type InputUpdateRequest struct {
 	Options map[string]any `json:"options"`
 }
 
-type InputHandlers struct {
-	repository *models.InputRepository
+func NewChannelHandlers(repository *models.ChannelRepository) *ChannelHandlers {
+	return &ChannelHandlers{repository: repository}
 }
 
-func (lh InputHandlers) AddHandlers(r *gin.Engine) {
-
-	r.GET("/inputs", lh.ListInputHandler)
-	r.POST("/inputs", lh.CreateInputHandler)
-	r.POST("/inputs/:id/toggle", lh.ToogleInputHandler)
-	r.GET("/inputs/:id", lh.FetchInputHandler)
-	r.POST("/inputs/:id", lh.UpdateInputHandler)
-	r.DELETE("/inputs/:id", lh.DeleteInputHandler)
+type ChannelHandlers struct {
+	repository *models.ChannelRepository
 }
 
-func (lh InputHandlers) ListInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) AddHandlers(r *gin.Engine) {
+
+	r.GET("/channels", lh.ListInputHandler)
+	r.POST("/channels", lh.CreateInputHandler)
+	r.POST("/channels/:id/toggle", lh.ToogleInputHandler)
+	r.GET("/channels/:id", lh.FetchInputHandler)
+	r.POST("/channels/:id", lh.UpdateInputHandler)
+	r.DELETE("/channels/:id", lh.DeleteInputHandler)
+}
+
+func (lh ChannelHandlers) ListInputHandler(c *gin.Context) {
 
 	inputs, err := lh.repository.GetAll()
 
@@ -71,7 +75,7 @@ func (lh InputHandlers) ListInputHandler(c *gin.Context) {
 	c.JSON(200, InputListResponse{Inputs: inputsList})
 }
 
-func (lh InputHandlers) CreateInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) CreateInputHandler(c *gin.Context) {
 
 	var createBody InputCreateRequest
 
@@ -93,7 +97,7 @@ func (lh InputHandlers) CreateInputHandler(c *gin.Context) {
 	})
 }
 
-func (lh InputHandlers) FetchInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) FetchInputHandler(c *gin.Context) {
 	id := c.Param("id")
 	input, err := lh.repository.GetById(id)
 	if err != nil {
@@ -105,7 +109,7 @@ func (lh InputHandlers) FetchInputHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, ConvertModelToResponse(input))
 }
 
-func (lh InputHandlers) UpdateInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) UpdateInputHandler(c *gin.Context) {
 
 	id := c.Param("id")
 	input, err := lh.repository.GetById(id)
@@ -136,7 +140,7 @@ func (lh InputHandlers) UpdateInputHandler(c *gin.Context) {
 	})
 }
 
-func (lh InputHandlers) ToogleInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) ToogleInputHandler(c *gin.Context) {
 	id := c.Param("id")
 	input, err := lh.repository.GetById(id)
 
@@ -157,7 +161,7 @@ func (lh InputHandlers) ToogleInputHandler(c *gin.Context) {
 	c.JSON(http.StatusAccepted, ConvertModelToResponse(input))
 }
 
-func (lh InputHandlers) DeleteInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) DeleteInputHandler(c *gin.Context) {
 
 	id := c.Param("id")
 	err := lh.repository.DeleteById(id)
@@ -170,7 +174,7 @@ func (lh InputHandlers) DeleteInputHandler(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{"message": "success"})
 }
 
-func UpdateInputFromUpdateRequest(original models.InputModel, update InputUpdateRequest) models.InputModel {
+func UpdateInputFromUpdateRequest(original models.ChannelEntity, update InputUpdateRequest) models.ChannelEntity {
 	original.Name = update.Name
 	original.Type = models.InputType(update.Type)
 	original.Active = update.Active
@@ -179,8 +183,8 @@ func UpdateInputFromUpdateRequest(original models.InputModel, update InputUpdate
 	return original
 }
 
-func ConvertCreateRequestToModel(input InputCreateRequest) models.InputModel {
-	return models.InputModel{
+func ConvertCreateRequestToModel(input InputCreateRequest) models.ChannelEntity {
+	return models.ChannelEntity{
 		ID:        bson.NewObjectID(),
 		Type:      models.InputType(input.Type),
 		Name:      input.Name,
@@ -191,7 +195,7 @@ func ConvertCreateRequestToModel(input InputCreateRequest) models.InputModel {
 	}
 }
 
-func ConvertModelToResponse(input models.InputModel) InputResponse {
+func ConvertModelToResponse(input models.ChannelEntity) InputResponse {
 
 	return InputResponse{
 		Id:        input.ID.Hex(),
@@ -202,8 +206,4 @@ func ConvertModelToResponse(input models.InputModel) InputResponse {
 		CreatedAt: input.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: input.UpdatedAt.Format(time.RFC3339),
 	}
-}
-
-func NewInputHandlers(repository *models.InputRepository) *InputHandlers {
-	return &InputHandlers{repository: repository}
 }

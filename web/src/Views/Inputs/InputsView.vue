@@ -11,7 +11,7 @@ const fetchInputs = async () => {
   try {
     loading.value = true
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
-    const response = await fetch(`${apiUrl}/inputs`)
+    const response = await fetch(`${apiUrl}/channels`)
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
@@ -32,7 +32,7 @@ const toggleStatus = async (input) => {
   try {
     togglingId.value = input.id
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
-    const response = await fetch(`${apiUrl}/inputs/${input.id}/toggle`, {
+    const response = await fetch(`${apiUrl}/channels/${input.id}/toggle`, {
       method: 'POST',
     })
 
@@ -62,7 +62,7 @@ const deleteInput = async (input) => {
   try {
     deletingId.value = input.id
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
-    const response = await fetch(`${apiUrl}/inputs/${input.id}`, {
+    const response = await fetch(`${apiUrl}/channels/${input.id}`, {
       method: 'DELETE',
     })
 
@@ -93,9 +93,9 @@ const formatDate = (dateString) => {
 <template>
   <div>
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-4xl font-bold text-black">Inputs</h1>
+      <h1 class="text-4xl font-bold text-black">Channels</h1>
       <router-link
-        to="/inputs/create"
+        to="/channels/create"
         class="px-4 py-2 bg-black text-white rounded-md font-medium hover:bg-gray-800 transition-all"
       >
         + Create
@@ -103,7 +103,7 @@ const formatDate = (dateString) => {
     </div>
 
     <div v-if="loading" class="text-gray-600">
-      Loading inputs...
+      Loading channels...
     </div>
 
     <div v-else-if="error" class="bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 max-w-2xl">

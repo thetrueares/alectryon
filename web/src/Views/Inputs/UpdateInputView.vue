@@ -45,7 +45,7 @@ const handleUpdate = async (formData) => {
     error.value = null
     
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
-    const response = await fetch(`${apiUrl}/inputs/${inputId}`, {
+    const response = await fetch(`${apiUrl}/channels/${inputId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ const handleUpdate = async (formData) => {
 
 <template>
   <div>
-    <h1 class="text-4xl font-bold text-black mb-8">Update Input</h1>
+    <h1 class="text-4xl font-bold text-black mb-8">Update Channel</h1>
 
     <div v-if="loading" class="text-gray-600">
       Loading input data...
@@ -83,7 +83,7 @@ const handleUpdate = async (formData) => {
     <InputForm
       v-else
       :initial-data="initialData"
-      submit-button-text="Update Input"
+      submit-button-text="Update Channel"
       loading-text="Updating..."
       :is-saving="saving"
       @submit="handleUpdate"

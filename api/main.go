@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"go.iain.rocks/alectryon/api/channels"
 	"go.iain.rocks/alectryon/api/engine"
 	"go.iain.rocks/alectryon/api/engine/vendor"
 	"go.iain.rocks/alectryon/api/handlers"
-	"go.iain.rocks/alectryon/api/inputs"
 	"go.iain.rocks/alectryon/api/models"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -32,8 +32,8 @@ func main() {
 	inputCollections := database.Collection("inputs")
 	historyCollection := database.Collection("history")
 
-	repository := models.NewInputRepository(inputCollections)
-	inputHandlers := handlers.NewInputHandlers(repository)
+	repository := models.NewChannelRepository(inputCollections)
+	inputHandlers := handlers.NewChannelHandlers(repository)
 
 	historyRepository := models.NewHistoryRepository(historyCollection)
 
@@ -44,7 +44,7 @@ func main() {
 		})
 	})
 	inputHandlers.AddHandlers(r)
-	go startInputs(repository, historyRepository, engine)
+	go startChannels(repository, historyRepository, engine)
 
 	r.Run(":8080")
 }
@@ -57,7 +57,7 @@ func createMongoDb() (*mongo.Client, error) {
 	return mongo.Connect(opts)
 }
 
-func startInputs(repository *models.InputRepository, historyRepository *models.HistoryRepository, engine engine.AiInterface) {
+func startChannels(repository *models.ChannelRepository, historyRepository *models.HistoryRepository, engine engine.AiInterface) {
 	inputModels, err := repository.GetAll()
 
 	if err != nil {
@@ -66,7 +66,7 @@ func startInputs(repository *models.InputRepository, historyRepository *models.H
 
 	for _, input := range inputModels {
 		if input.Type == models.InputTypeTelegramBot {
-			go inputs.StartTelegramBot(input, historyRepository, engine)
+			go channels.StartTelegramBot(input, historyRepository, engine)
 		}
 	}
 }
