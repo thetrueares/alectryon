@@ -28,9 +28,12 @@ func main() {
 	database := mongo.Database(os.Getenv("MONGODB_DATABASE"))
 	log.Print("Connected")
 	inputCollections := database.Collection("inputs")
+	historyCollection := database.Collection("history")
 
 	repository := models.NewInputRepository(inputCollections)
 	inputHandlers := handlers.NewInputHandlers(repository)
+
+	historyRepository := models.NewHistoryRepository(historyCollection)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -38,7 +41,7 @@ func main() {
 		})
 	})
 	inputHandlers.AddHandlers(r)
-	go startInputs(repository)
+	go startInputs(repository, historyRepository)
 
 	r.Run(":8080")
 }
@@ -51,7 +54,7 @@ func createMongoDb() (*mongo.Client, error) {
 	return mongo.Connect(opts)
 }
 
-func startInputs(repository *models.InputRepository) {
+func startInputs(repository *models.InputRepository, historyRepository *models.HistoryRepository) {
 	inputModels, err := repository.GetAll()
 
 	if err != nil {
@@ -60,7 +63,7 @@ func startInputs(repository *models.InputRepository) {
 
 	for _, input := range inputModels {
 		if input.Type == models.InputTypeTelegramBot {
-			go inputs.StartTelegramBot(input)
+			go inputs.StartTelegramBot(input, historyRepository)
 		}
 	}
 }

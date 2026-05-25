@@ -12,7 +12,7 @@ import (
 )
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
-func StartTelegramBot(input models.InputModel) error {
+func StartTelegramBot(input models.InputModel, repository *models.HistoryRepository) error {
 	if input.Type != models.InputTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", input.Type)
 	}
@@ -31,8 +31,10 @@ func StartTelegramBot(input models.InputModel) error {
 		return errors.New("bot_token is empty")
 	}
 
+	handler := NewTelegramHandler(repository)
+
 	opts := []bot.Option{
-		bot.WithDefaultHandler(telegramHandler),
+		bot.WithDefaultHandler(handler.handle),
 	}
 
 	b, err := bot.New(tokenStr, opts...)
@@ -48,7 +50,15 @@ func StartTelegramBot(input models.InputModel) error {
 	return nil
 }
 
-func telegramHandler(ctx context.Context, b *bot.Bot, update *telegrammodels.Update) {
+func NewTelegramHandler(repository *models.HistoryRepository) *TelegramHandler {
+	return &TelegramHandler{repository: repository}
+}
+
+type TelegramHandler struct {
+	repository *models.HistoryRepository
+}
+
+func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegrammodels.Update) {
 	if update.Message == nil {
 		return
 	}
@@ -65,13 +75,21 @@ func telegramHandler(ctx context.Context, b *bot.Bot, update *telegrammodels.Upd
 		return
 	}
 
-	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
+	history := models.NewInwardMessage(sender, update.Message.Text)
+	th.repository.Save(history)
 
+	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
+	th.sendMessage(ctx, b, update.Message.Chat.ID, sender, update.Message.Text)
+}
+
+func (th TelegramHandler) sendMessage(ctx context.Context, b *bot.Bot, chatId int64, user, message string) {
+	historyOut := models.NewOutwardMessage(user, message)
+	th.repository.Save(historyOut)
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   update.Message.Text,
+		ChatID: chatId,
+		Text:   message,
 	})
 	if err != nil {
-		log.Printf("[Telegram] Failed to send message to %d: %v", update.Message.Chat.ID, err)
+		log.Printf("[Telegram] Failed to send message to %d: %v", chatId, err)
 	}
 }
