@@ -14,7 +14,7 @@ import (
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
 func StartTelegramBot(channel models.ChannelEntity, repository *models.HistoryRepository, ai engine.AiInterface) error {
-	if channel.Type != models.InputTypeTelegramBot {
+	if channel.Type != models.ChannelTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", channel.Type)
 	}
 

@@ -65,7 +65,7 @@ func startChannels(repository *models.ChannelRepository, historyRepository *mode
 	}
 
 	for _, input := range inputModels {
-		if input.Type == models.InputTypeTelegramBot {
+		if input.Type == models.ChannelTypeTelegramBot {
 			go channels.StartTelegramBot(input, historyRepository, engine)
 		}
 	}

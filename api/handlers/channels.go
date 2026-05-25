@@ -9,11 +9,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type InputListResponse struct {
-	Inputs []InputResponse `json:"inputs"`
+type ChannelListResponse struct {
+	Channels []ChannelResponse `json:"channels"`
 }
 
-type InputResponse struct {
+type ChannelResponse struct {
 	Id        string         `json:"id"`
 	Name      string         `json:"name"`
 	Type      string         `json:"type"`
@@ -23,14 +23,14 @@ type InputResponse struct {
 	UpdatedAt string         `json:"updated_at"`
 }
 
-type InputCreateRequest struct {
+type ChannelCreateRequest struct {
 	Name    string         `json:"name"`
 	Type    string         `json:"type"`
 	Active  bool           `json:"active"`
 	Options map[string]any `json:"options"`
 }
 
-type InputUpdateRequest struct {
+type ChannelUpdateRequest struct {
 	Name    string         `json:"name"`
 	Type    string         `json:"type"`
 	Active  bool           `json:"active"`
@@ -47,15 +47,15 @@ type ChannelHandlers struct {
 
 func (lh ChannelHandlers) AddHandlers(r *gin.Engine) {
 
-	r.GET("/channels", lh.ListInputHandler)
-	r.POST("/channels", lh.CreateInputHandler)
-	r.POST("/channels/:id/toggle", lh.ToogleInputHandler)
-	r.GET("/channels/:id", lh.FetchInputHandler)
-	r.POST("/channels/:id", lh.UpdateInputHandler)
-	r.DELETE("/channels/:id", lh.DeleteInputHandler)
+	r.GET("/channels", lh.ListChannelHandler)
+	r.POST("/channels", lh.CreateChannelHandler)
+	r.POST("/channels/:id/toggle", lh.ToogleChannelHandler)
+	r.GET("/channels/:id", lh.FetchChannelHandler)
+	r.POST("/channels/:id", lh.UpdateChannelHandler)
+	r.DELETE("/channels/:id", lh.DeleteChannelHandler)
 }
 
-func (lh ChannelHandlers) ListInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) ListChannelHandler(c *gin.Context) {
 
 	inputs, err := lh.repository.GetAll()
 
@@ -65,19 +65,19 @@ func (lh ChannelHandlers) ListInputHandler(c *gin.Context) {
 		return
 	}
 
-	var inputsList []InputResponse
+	var inputsList []ChannelResponse
 
 	for _, inputModel := range inputs {
 		inputResponse := ConvertModelToResponse(inputModel)
 		inputsList = append(inputsList, inputResponse)
 	}
 
-	c.JSON(200, InputListResponse{Inputs: inputsList})
+	c.JSON(200, ChannelListResponse{Channels: inputsList})
 }
 
-func (lh ChannelHandlers) CreateInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) CreateChannelHandler(c *gin.Context) {
 
-	var createBody InputCreateRequest
+	var createBody ChannelCreateRequest
 
 	if err := c.ShouldBindJSON(&createBody); err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "Invalid body"})
@@ -97,7 +97,7 @@ func (lh ChannelHandlers) CreateInputHandler(c *gin.Context) {
 	})
 }
 
-func (lh ChannelHandlers) FetchInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) FetchChannelHandler(c *gin.Context) {
 	id := c.Param("id")
 	input, err := lh.repository.GetById(id)
 	if err != nil {
@@ -109,7 +109,7 @@ func (lh ChannelHandlers) FetchInputHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, ConvertModelToResponse(input))
 }
 
-func (lh ChannelHandlers) UpdateInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) UpdateChannelHandler(c *gin.Context) {
 
 	id := c.Param("id")
 	input, err := lh.repository.GetById(id)
@@ -120,7 +120,7 @@ func (lh ChannelHandlers) UpdateInputHandler(c *gin.Context) {
 		return
 	}
 
-	var createBody InputUpdateRequest
+	var createBody ChannelUpdateRequest
 
 	if err := c.ShouldBindJSON(&createBody); err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": "Invalid body"})
@@ -140,7 +140,7 @@ func (lh ChannelHandlers) UpdateInputHandler(c *gin.Context) {
 	})
 }
 
-func (lh ChannelHandlers) ToogleInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) ToogleChannelHandler(c *gin.Context) {
 	id := c.Param("id")
 	input, err := lh.repository.GetById(id)
 
@@ -161,7 +161,7 @@ func (lh ChannelHandlers) ToogleInputHandler(c *gin.Context) {
 	c.JSON(http.StatusAccepted, ConvertModelToResponse(input))
 }
 
-func (lh ChannelHandlers) DeleteInputHandler(c *gin.Context) {
+func (lh ChannelHandlers) DeleteChannelHandler(c *gin.Context) {
 
 	id := c.Param("id")
 	err := lh.repository.DeleteById(id)
@@ -174,36 +174,36 @@ func (lh ChannelHandlers) DeleteInputHandler(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{"message": "success"})
 }
 
-func UpdateInputFromUpdateRequest(original models.ChannelEntity, update InputUpdateRequest) models.ChannelEntity {
+func UpdateInputFromUpdateRequest(original models.ChannelEntity, update ChannelUpdateRequest) models.ChannelEntity {
 	original.Name = update.Name
-	original.Type = models.InputType(update.Type)
+	original.Type = models.ChannelType(update.Type)
 	original.Active = update.Active
 	original.UpdatedAt = time.Now()
 
 	return original
 }
 
-func ConvertCreateRequestToModel(input InputCreateRequest) models.ChannelEntity {
+func ConvertCreateRequestToModel(channel ChannelCreateRequest) models.ChannelEntity {
 	return models.ChannelEntity{
 		ID:        bson.NewObjectID(),
-		Type:      models.InputType(input.Type),
-		Name:      input.Name,
-		Active:    input.Active,
-		Options:   input.Options,
+		Type:      models.ChannelType(channel.Type),
+		Name:      channel.Name,
+		Active:    channel.Active,
+		Options:   channel.Options,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 }
 
-func ConvertModelToResponse(input models.ChannelEntity) InputResponse {
+func ConvertModelToResponse(channel models.ChannelEntity) ChannelResponse {
 
-	return InputResponse{
-		Id:        input.ID.Hex(),
-		Type:      string(input.Type),
-		Name:      input.Name,
-		Active:    input.Active,
-		Options:   input.Options,
-		CreatedAt: input.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: input.UpdatedAt.Format(time.RFC3339),
+	return ChannelResponse{
+		Id:        channel.ID.Hex(),
+		Type:      string(channel.Type),
+		Name:      channel.Name,
+		Active:    channel.Active,
+		Options:   channel.Options,
+		CreatedAt: channel.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: channel.UpdatedAt.Format(time.RFC3339),
 	}
 }

@@ -12,7 +12,7 @@ import (
 
 func TestConvertModelToResponse(t *testing.T) {
 
-	inputModel := models.InputModel{
+	inputModel := models.ChannelEntity{
 		ID:        bson.NewObjectID(),
 		Name:      "Botty",
 		Type:      models.InputTypeTelegramBot,
@@ -33,9 +33,9 @@ func TestConvertModelToResponse(t *testing.T) {
 
 func TestConvertCreateRequestToModel(t *testing.T) {
 
-	createRequest := handlers.InputCreateRequest{
+	createRequest := handlers.ChannelCreateRequest{
 		Name:   "Name",
-		Type:   string(models.InputTypeTelegramBot),
+		Type:   string(models.ChannelTypeTelegramBot),
 		Active: true,
 	}
 

@@ -9,19 +9,19 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-type InputType string
+type ChannelType string
 
 const (
-	InputTypeTelegramBot InputType = "telegram"
-	InputTypeSlackBot    InputType = "slack"
-	InputTypeAudio       InputType = "audio"
-	InputTypeVideo       InputType = "video"
+	ChannelTypeTelegramBot ChannelType = "telegram"
+	ChannelTypeSlackBot    ChannelType = "slack"
+	ChannelTypeAudio       ChannelType = "audio"
+	ChannelTypeVideo       ChannelType = "video"
 )
 
 type ChannelEntity struct {
 	ID        bson.ObjectID  `bson:"_id"`
 	Name      string         `bson:"name"`
-	Type      InputType      `bson:"type"`
+	Type      ChannelType    `bson:"type"`
 	Active    bool           `bson:"active"`
 	Options   map[string]any `bson:"options"`
 	CreatedAt time.Time      `bson:"created_at"`
