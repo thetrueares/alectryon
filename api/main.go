@@ -37,7 +37,7 @@ func main() {
 
 	historyRepository := models.NewHistoryRepository(historyCollection)
 
-	engine := vendor.NewOpenAI(os.Getenv("OPENAI_API_KEY"))
+	engine := vendor.NewOllama(os.Getenv("OPENAI_API_KEY"))
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello World from Gin!",
