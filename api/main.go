@@ -9,8 +9,8 @@ import (
 	"go.iain.rocks/alectryon/api/channels"
 	"go.iain.rocks/alectryon/api/engine"
 	"go.iain.rocks/alectryon/api/engine/vendor"
+	"go.iain.rocks/alectryon/api/entities"
 	"go.iain.rocks/alectryon/api/handlers"
-	"go.iain.rocks/alectryon/api/models"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -32,10 +32,10 @@ func main() {
 	inputCollections := database.Collection("inputs")
 	historyCollection := database.Collection("history")
 
-	repository := models.NewChannelRepository(inputCollections)
+	repository := entities.NewChannelRepository(inputCollections)
 	inputHandlers := handlers.NewChannelHandlers(repository)
 
-	historyRepository := models.NewHistoryRepository(historyCollection)
+	historyRepository := entities.NewHistoryRepository(historyCollection)
 
 	engine := vendor.NewOllama(os.Getenv("OPENAI_API_KEY"))
 	r.GET("/", func(c *gin.Context) {
@@ -57,7 +57,7 @@ func createMongoDb() (*mongo.Client, error) {
 	return mongo.Connect(opts)
 }
 
-func startChannels(repository *models.ChannelRepository, historyRepository *models.HistoryRepository, engine engine.AiInterface) {
+func startChannels(repository *entities.ChannelRepository, historyRepository *entities.HistoryRepository, engine engine.AiInterface) {
 	inputModels, err := repository.GetAll()
 
 	if err != nil {
@@ -65,7 +65,7 @@ func startChannels(repository *models.ChannelRepository, historyRepository *mode
 	}
 
 	for _, input := range inputModels {
-		if input.Type == models.ChannelTypeTelegramBot {
+		if input.Type == entities.ChannelTypeTelegramBot {
 			go channels.StartTelegramBot(input, historyRepository, engine)
 		}
 	}

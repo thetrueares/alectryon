@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.iain.rocks/alectryon/api/channels"
 	"go.iain.rocks/alectryon/api/engine"
-	"go.iain.rocks/alectryon/api/models"
+	"go.iain.rocks/alectryon/api/entities"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -17,8 +17,8 @@ func (d dummyAi) Process(in engine.Input) engine.Output {
 }
 
 func TestStartTelegramBot_InvalidType(t *testing.T) {
-	input := models.InputModel{
-		Type: models.InputTypeSlackBot,
+	input := entities.ChannelEntity{
+		Type: entities.ChannelTypeSlackBot,
 	}
 	err := channels.StartTelegramBot(input, nil, dummyAi{})
 	assert.Error(t, err)
@@ -26,8 +26,8 @@ func TestStartTelegramBot_InvalidType(t *testing.T) {
 }
 
 func TestStartTelegramBot_MissingToken(t *testing.T) {
-	input := models.InputModel{
-		Type:    models.InputTypeTelegramBot,
+	input := entities.ChannelEntity{
+		Type:    entities.ChannelTypeTelegramBot,
 		Options: map[string]any{},
 	}
 	err := channels.StartTelegramBot(input, nil, dummyAi{})
@@ -36,8 +36,8 @@ func TestStartTelegramBot_MissingToken(t *testing.T) {
 }
 
 func TestStartTelegramBot_InvalidTokenFormat(t *testing.T) {
-	input := models.InputModel{
-		Type: models.InputTypeTelegramBot,
+	input := entities.ChannelEntity{
+		Type: entities.ChannelTypeTelegramBot,
 		Options: map[string]any{
 			"bot_token": 12345,
 		},
@@ -48,8 +48,8 @@ func TestStartTelegramBot_InvalidTokenFormat(t *testing.T) {
 }
 
 func TestStartTelegramBot_EmptyToken(t *testing.T) {
-	input := models.InputModel{
-		Type: models.InputTypeTelegramBot,
+	input := entities.ChannelEntity{
+		Type: entities.ChannelTypeTelegramBot,
 		Options: map[string]any{
 			"bot_token": "",
 		},
@@ -61,10 +61,10 @@ func TestStartTelegramBot_EmptyToken(t *testing.T) {
 
 func TestStartTelegramBot_InvalidTokenValue(t *testing.T) {
 	// This will fail because bot.New validates the token format (usually)
-	input := models.InputModel{
+	input := entities.ChannelEntity{
 		ID:   bson.NewObjectID(),
 		Name: "Test Bot",
-		Type: models.InputTypeTelegramBot,
+		Type: entities.ChannelTypeTelegramBot,
 		Options: map[string]any{
 			"bot_token": "invalid-token",
 		},

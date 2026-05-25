@@ -5,17 +5,17 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.iain.rocks/alectryon/api/entities"
 	"go.iain.rocks/alectryon/api/handlers"
-	"go.iain.rocks/alectryon/api/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestConvertModelToResponse(t *testing.T) {
 
-	inputModel := models.ChannelEntity{
+	inputModel := entities.ChannelEntity{
 		ID:        bson.NewObjectID(),
 		Name:      "Botty",
-		Type:      models.InputTypeTelegramBot,
+		Type:      entities.ChannelTypeTelegramBot,
 		Active:    true,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -35,7 +35,7 @@ func TestConvertCreateRequestToModel(t *testing.T) {
 
 	createRequest := handlers.ChannelCreateRequest{
 		Name:   "Name",
-		Type:   string(models.ChannelTypeTelegramBot),
+		Type:   string(entities.ChannelTypeTelegramBot),
 		Active: true,
 	}
 

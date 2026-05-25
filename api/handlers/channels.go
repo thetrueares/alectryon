@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.iain.rocks/alectryon/api/models"
+	"go.iain.rocks/alectryon/api/entities"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -37,12 +37,12 @@ type ChannelUpdateRequest struct {
 	Options map[string]any `json:"options"`
 }
 
-func NewChannelHandlers(repository *models.ChannelRepository) *ChannelHandlers {
+func NewChannelHandlers(repository *entities.ChannelRepository) *ChannelHandlers {
 	return &ChannelHandlers{repository: repository}
 }
 
 type ChannelHandlers struct {
-	repository *models.ChannelRepository
+	repository *entities.ChannelRepository
 }
 
 func (lh ChannelHandlers) AddHandlers(r *gin.Engine) {
@@ -174,19 +174,19 @@ func (lh ChannelHandlers) DeleteChannelHandler(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{"message": "success"})
 }
 
-func UpdateInputFromUpdateRequest(original models.ChannelEntity, update ChannelUpdateRequest) models.ChannelEntity {
+func UpdateInputFromUpdateRequest(original entities.ChannelEntity, update ChannelUpdateRequest) entities.ChannelEntity {
 	original.Name = update.Name
-	original.Type = models.ChannelType(update.Type)
+	original.Type = entities.ChannelType(update.Type)
 	original.Active = update.Active
 	original.UpdatedAt = time.Now()
 
 	return original
 }
 
-func ConvertCreateRequestToModel(channel ChannelCreateRequest) models.ChannelEntity {
-	return models.ChannelEntity{
+func ConvertCreateRequestToModel(channel ChannelCreateRequest) entities.ChannelEntity {
+	return entities.ChannelEntity{
 		ID:        bson.NewObjectID(),
-		Type:      models.ChannelType(channel.Type),
+		Type:      entities.ChannelType(channel.Type),
 		Name:      channel.Name,
 		Active:    channel.Active,
 		Options:   channel.Options,
@@ -195,7 +195,7 @@ func ConvertCreateRequestToModel(channel ChannelCreateRequest) models.ChannelEnt
 	}
 }
 
-func ConvertModelToResponse(channel models.ChannelEntity) ChannelResponse {
+func ConvertModelToResponse(channel entities.ChannelEntity) ChannelResponse {
 
 	return ChannelResponse{
 		Id:        channel.ID.Hex(),

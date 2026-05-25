@@ -9,12 +9,12 @@ import (
 	"github.com/go-telegram/bot"
 	telegrammodels "github.com/go-telegram/bot/models"
 	"go.iain.rocks/alectryon/api/engine"
-	"go.iain.rocks/alectryon/api/models"
+	"go.iain.rocks/alectryon/api/entities"
 )
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
-func StartTelegramBot(channel models.ChannelEntity, repository *models.HistoryRepository, ai engine.AiInterface) error {
-	if channel.Type != models.ChannelTypeTelegramBot {
+func StartTelegramBot(channel entities.ChannelEntity, repository *entities.HistoryRepository, ai engine.AiInterface) error {
+	if channel.Type != entities.ChannelTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", channel.Type)
 	}
 
@@ -51,12 +51,12 @@ func StartTelegramBot(channel models.ChannelEntity, repository *models.HistoryRe
 	return nil
 }
 
-func NewTelegramHandler(repository *models.HistoryRepository, ai engine.AiInterface) *TelegramHandler {
+func NewTelegramHandler(repository *entities.HistoryRepository, ai engine.AiInterface) *TelegramHandler {
 	return &TelegramHandler{repository: repository, ai: ai}
 }
 
 type TelegramHandler struct {
-	repository *models.HistoryRepository
+	repository *entities.HistoryRepository
 	ai         engine.AiInterface
 }
 
@@ -77,7 +77,7 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 		return
 	}
 
-	history := models.NewInwardMessage(sender, update.Message.Text)
+	history := entities.NewInwardMessage(sender, update.Message.Text)
 	th.repository.Save(history)
 
 	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
