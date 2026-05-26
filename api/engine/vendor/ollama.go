@@ -32,11 +32,11 @@ func (oa Ollama) Process(input engine.Input) engine.Output {
 		Content: input.Text,
 	}
 	messages = append(messages, last)
-
 	request := &ollama.ChatRequest{
 		Model:    "gemma4",
 		Messages: messages,
 		Stream:   &stream,
+		Think:    &ollama.ThinkValue{Value: "high"},
 	}
 
 	err := oa.client.Chat(context.TODO(), request, func(resp ollama.ChatResponse) error {
