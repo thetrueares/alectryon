@@ -22,6 +22,7 @@ type Engine struct {
 }
 
 func (e Engine) Process(in Input) Output {
+	in.History, _ = e.historyRepository.GetLastFive()
 	return e.ai.Process(in)
 }
 
