@@ -4,7 +4,7 @@ import "go.iain.rocks/alectryon/api/entities"
 
 type Input struct {
 	Text    string
-	History []entities.HistoryModel
+	History []entities.HistoryEntity
 }
 
 type Output struct {

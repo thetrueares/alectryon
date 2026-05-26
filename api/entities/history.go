@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-type HistoryModel struct {
+type HistoryEntity struct {
 	ID        bson.ObjectID `bson:"_id"`
 	User      string        `bson:"user"`
 	Direction string        `bson:"direction"`
@@ -27,7 +27,7 @@ type HistoryRepository struct {
 	collection *mongo.Collection
 }
 
-func (hr HistoryRepository) Save(history HistoryModel) error {
+func (hr HistoryRepository) Save(history HistoryEntity) error {
 
 	now := time.Now()
 	if history.CreatedAt == nil {
@@ -45,14 +45,14 @@ func (hr HistoryRepository) Save(history HistoryModel) error {
 	return nil
 }
 
-func (hr HistoryRepository) GetLastFive() ([]HistoryModel, error) {
+func (hr HistoryRepository) GetLastFive() ([]HistoryEntity, error) {
 	opts := options.Find().SetSort(bson.D{{"created_at", -1}}).SetLimit(5)
 	cursor, err := hr.collection.Find(context.TODO(), bson.D{}, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	var results []HistoryModel
+	var results []HistoryEntity
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		return nil, err
 	}
@@ -60,16 +60,16 @@ func (hr HistoryRepository) GetLastFive() ([]HistoryModel, error) {
 	return results, nil
 }
 
-func NewInwardMessage(user, message string) HistoryModel {
+func NewInwardMessage(user, message string) HistoryEntity {
 	return newMessage(user, message, "inward")
 }
 
-func NewOutwardMessage(user, message string) HistoryModel {
+func NewOutwardMessage(user, message string) HistoryEntity {
 	return newMessage(user, message, "outward")
 }
 
-func newMessage(user, message, direction string) HistoryModel {
-	return HistoryModel{
+func newMessage(user, message, direction string) HistoryEntity {
+	return HistoryEntity{
 		ID:        bson.NewObjectID(),
 		User:      user,
 		Direction: direction,
