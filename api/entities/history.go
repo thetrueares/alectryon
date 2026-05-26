@@ -45,6 +45,21 @@ func (hr HistoryRepository) Save(history HistoryModel) error {
 	return nil
 }
 
+func (hr HistoryRepository) GetLastFive() ([]HistoryModel, error) {
+	opts := options.Find().SetSort(bson.D{{"created_at", -1}}).SetLimit(5)
+	cursor, err := hr.collection.Find(context.TODO(), bson.D{}, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []HistoryModel
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 func NewInwardMessage(user, message string) HistoryModel {
 	return newMessage(user, message, "inward")
 }

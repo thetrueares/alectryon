@@ -37,7 +37,8 @@ func main() {
 
 	historyRepository := entities.NewHistoryRepository(historyCollection)
 
-	engine := vendor.NewOllama(os.Getenv("OPENAI_API_KEY"))
+	aiModel := vendor.NewOllama(os.Getenv("OPENAI_API_KEY"))
+	engine := engine.NewEngine(aiModel)
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Hello World from Gin!",
@@ -57,7 +58,7 @@ func createMongoDb() (*mongo.Client, error) {
 	return mongo.Connect(opts)
 }
 
-func startChannels(repository *entities.ChannelRepository, historyRepository *entities.HistoryRepository, engine engine.AiInterface) {
+func startChannels(repository *entities.ChannelRepository, historyRepository *entities.HistoryRepository, engine *engine.Engine) {
 	inputModels, err := repository.GetAll()
 
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 )
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
-func StartTelegramBot(channel entities.ChannelEntity, repository *entities.HistoryRepository, ai engine.AiInterface) error {
+func StartTelegramBot(channel entities.ChannelEntity, repository *entities.HistoryRepository, ai *engine.Engine) error {
 	if channel.Type != entities.ChannelTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", channel.Type)
 	}
@@ -51,13 +51,13 @@ func StartTelegramBot(channel entities.ChannelEntity, repository *entities.Histo
 	return nil
 }
 
-func NewTelegramHandler(repository *entities.HistoryRepository, ai engine.AiInterface) *TelegramHandler {
+func NewTelegramHandler(repository *entities.HistoryRepository, ai *engine.Engine) *TelegramHandler {
 	return &TelegramHandler{repository: repository, ai: ai}
 }
 
 type TelegramHandler struct {
 	repository *entities.HistoryRepository
-	ai         engine.AiInterface
+	ai         *engine.Engine
 }
 
 func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegrammodels.Update) {
