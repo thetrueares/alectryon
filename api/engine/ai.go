@@ -1,7 +1,10 @@
 package engine
 
+import "go.iain.rocks/alectryon/api/entities"
+
 type Input struct {
-	Text string
+	Text    string
+	History []entities.HistoryModel
 }
 
 type Output struct {
@@ -9,16 +12,21 @@ type Output struct {
 	TokenCount int
 }
 
+type EngineInterface interface {
+	Process(in Input) Output
+}
+
 type Engine struct {
-	ai AiInterface
+	ai                AiInterface
+	historyRepository entities.HistoryRepository
 }
 
 func (e Engine) Process(in Input) Output {
 	return e.ai.Process(in)
 }
 
-func NewEngine(ai AiInterface) *Engine {
-	return &Engine{ai: ai}
+func NewEngine(ai AiInterface, historyRepository entities.HistoryRepository) EngineInterface {
+	return &Engine{ai: ai, historyRepository: historyRepository}
 }
 
 type AiInterface interface {
