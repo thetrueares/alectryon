@@ -78,8 +78,6 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 	}
 
 	history := entities.NewInwardMessage(sender, update.Message.Text)
-	th.repository.Save(history)
-
 	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
 
 	aiOutput := th.ai.Process(engine.Input{Text: update.Message.Text})

@@ -1,6 +1,8 @@
 package engine
 
-import "go.iain.rocks/alectryon/api/entities"
+import (
+	"go.iain.rocks/alectryon/api/entities"
+)
 
 type Input struct {
 	Text    string
@@ -11,6 +13,26 @@ type Output struct {
 	Text       string
 	TokenCount int
 }
+
+type ReasonResponse struct {
+	Action  ActionType
+	History []ChatMessage
+	Latest  string
+}
+
+type ChatMessage struct {
+	Role    string
+	Content string
+}
+
+type ActionType string
+
+const (
+	NewChatAction     ActionType = "new_chat"
+	ResumedChatAction ActionType = "resumed_chat"
+	GenerateAction    ActionType = "generate"
+	TaskAction        ActionType = "task"
+)
 
 type EngineInterface interface {
 	Process(in Input) Output
@@ -23,7 +45,10 @@ type Engine struct {
 
 func (e Engine) Process(in Input) Output {
 	in.History, _ = e.historyRepository.GetLastFive()
-	return e.ai.Process(in)
+
+	resp := e.ai.Reason(in)
+
+	return e.ai.Process(*resp)
 }
 
 func NewEngine(ai AiInterface, historyRepository entities.HistoryRepository) EngineInterface {
@@ -31,7 +56,8 @@ func NewEngine(ai AiInterface, historyRepository entities.HistoryRepository) Eng
 }
 
 type AiInterface interface {
-	Process(in Input) Output
+	Process(input ReasonResponse) Output
+	Reason(input Input) *ReasonResponse
 }
 
 type SimpleAi struct{}
