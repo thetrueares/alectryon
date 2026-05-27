@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
 	telegrammodels "github.com/go-telegram/bot/models"
 	"go.iain.rocks/alectryon/api/engine"
 	"go.iain.rocks/alectryon/api/entities"
@@ -81,7 +81,7 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 		return
 	}
 
-	userEntity, err := th.userRepository.FindByChannelSender(entities.ChannelTypeTelegramBot, string(update.Message.From.ID))
+	userEntity, err := th.userRepository.FindByChannelSender(entities.ChannelTypeTelegramBot, strconv.FormatInt(update.Message.From.ID, 10))
 
 	if err != nil {
 		userEntity = createUserEntityFromTelegramSender(*update.Message.From, th.channelEntity)
@@ -108,16 +108,16 @@ func (th TelegramHandler) sendMessage(ctx context.Context, b *bot.Bot, chatId in
 	}
 }
 
-func createUserEntityFromTelegramSender(telegramSender models.User, channel entities.ChannelEntity) *entities.UserEntity {
+func createUserEntityFromTelegramSender(telegramSender telegrammodels.User, channel entities.ChannelEntity) *entities.UserEntity {
 
 	return &entities.UserEntity{
 		ID:   bson.NewObjectID(),
 		Name: telegramSender.FirstName,
 		UserChannels: []entities.UserChannel{
-			entities.UserChannel{
+			{
 				ChannelID:   channel.ID,
 				ChannelType: entities.ChannelTypeTelegramBot,
-				UserID:      string(telegramSender.ID),
+				UserID:      strconv.FormatInt(telegramSender.ID, 10),
 			},
 		},
 	}
