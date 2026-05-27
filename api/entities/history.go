@@ -11,7 +11,7 @@ import (
 
 type HistoryEntity struct {
 	ID        bson.ObjectID `bson:"_id"`
-	User      string        `bson:"user"`
+	User      EmbeddedUser  `bson:"user"`
 	Direction string        `bson:"direction"`
 	Message   string        `bson:"message"`
 	Response  string        `bson:"response"`
@@ -60,18 +60,23 @@ func (hr HistoryRepository) GetLastFive() ([]HistoryEntity, error) {
 	return results, nil
 }
 
-func NewInwardMessage(user, message string) HistoryEntity {
+func NewInwardMessage(user *UserEntity, message string) HistoryEntity {
 	return newMessage(user, message, "inward")
 }
 
-func NewOutwardMessage(user, message string) HistoryEntity {
+func NewOutwardMessage(user *UserEntity, message string) HistoryEntity {
 	return newMessage(user, message, "outward")
 }
 
-func newMessage(user, message, direction string) HistoryEntity {
+func newMessage(user *UserEntity, message, direction string) HistoryEntity {
+	embeddedUser := EmbeddedUser{
+		ID:   user.ID,
+		Name: user.Name,
+	}
+
 	return HistoryEntity{
 		ID:        bson.NewObjectID(),
-		User:      user,
+		User:      embeddedUser,
 		Direction: direction,
 		Message:   message,
 	}

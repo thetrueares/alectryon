@@ -31,11 +31,13 @@ func main() {
 	log.Print("Connected")
 	inputCollections := database.Collection("inputs")
 	historyCollection := database.Collection("history")
+	userCollection := database.Collection("users")
 
 	repository := entities.NewChannelRepository(inputCollections)
 	inputHandlers := handlers.NewChannelHandlers(repository)
 
 	historyRepository := entities.NewHistoryRepository(historyCollection)
+	userRepository := entities.NewUserRepository(userCollection)
 
 	aiModel := vendor.NewOllama(os.Getenv("OPENAI_API_KEY"))
 	engine := engine.NewEngine(aiModel, *historyRepository)
@@ -46,7 +48,7 @@ func main() {
 		})
 	})
 	inputHandlers.AddHandlers(r)
-	go startChannels(repository, historyRepository, engine)
+	go startChannels(repository, historyRepository, userRepository, engine)
 
 	r.Run(":8080")
 }
@@ -59,7 +61,12 @@ func createMongoDb() (*mongo.Client, error) {
 	return mongo.Connect(opts)
 }
 
-func startChannels(repository *entities.ChannelRepository, historyRepository *entities.HistoryRepository, engine engine.EngineInterface) {
+func startChannels(
+	repository *entities.ChannelRepository,
+	historyRepository *entities.HistoryRepository,
+	userRepository *entities.UserRepository,
+	engine engine.EngineInterface,
+) {
 	inputModels, err := repository.GetAll()
 
 	if err != nil {
@@ -68,7 +75,7 @@ func startChannels(repository *entities.ChannelRepository, historyRepository *en
 
 	for _, input := range inputModels {
 		if input.Type == entities.ChannelTypeTelegramBot {
-			go channels.StartTelegramBot(input, historyRepository, engine)
+			go channels.StartTelegramBot(input, historyRepository, userRepository, engine)
 		}
 	}
 }

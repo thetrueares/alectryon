@@ -7,13 +7,15 @@ import (
 	"log"
 
 	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 	telegrammodels "github.com/go-telegram/bot/models"
 	"go.iain.rocks/alectryon/api/engine"
 	"go.iain.rocks/alectryon/api/entities"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
-func StartTelegramBot(channel entities.ChannelEntity, repository *entities.HistoryRepository, ai engine.EngineInterface) error {
+func StartTelegramBot(channel entities.ChannelEntity, repository *entities.HistoryRepository, userRepository *entities.UserRepository, ai engine.EngineInterface) error {
 	if channel.Type != entities.ChannelTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", channel.Type)
 	}
@@ -32,7 +34,7 @@ func StartTelegramBot(channel entities.ChannelEntity, repository *entities.Histo
 		return errors.New("bot_token is empty")
 	}
 
-	handler := NewTelegramHandler(repository, ai)
+	handler := NewTelegramHandler(channel, repository, userRepository, ai)
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(handler.handle),
@@ -51,13 +53,15 @@ func StartTelegramBot(channel entities.ChannelEntity, repository *entities.Histo
 	return nil
 }
 
-func NewTelegramHandler(repository *entities.HistoryRepository, ai engine.EngineInterface) *TelegramHandler {
-	return &TelegramHandler{repository: repository, ai: ai}
+func NewTelegramHandler(channelEntity entities.ChannelEntity, repository *entities.HistoryRepository, userRepository *entities.UserRepository, ai engine.EngineInterface) *TelegramHandler {
+	return &TelegramHandler{repository: repository, userRepository: userRepository, ai: ai, channelEntity: channelEntity}
 }
 
 type TelegramHandler struct {
-	repository *entities.HistoryRepository
-	ai         engine.EngineInterface
+	repository     *entities.HistoryRepository
+	userRepository *entities.UserRepository
+	ai             engine.EngineInterface
+	channelEntity  entities.ChannelEntity
 }
 
 func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegrammodels.Update) {
@@ -77,7 +81,14 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 		return
 	}
 
-	history := entities.NewInwardMessage(sender, update.Message.Text)
+	userEntity, err := th.userRepository.FindByChannelSender(entities.ChannelTypeTelegramBot, string(update.Message.From.ID))
+
+	if err != nil {
+		userEntity = createUserEntityFromTelegramSender(*update.Message.From, th.channelEntity)
+		th.userRepository.Save(*userEntity)
+	}
+
+	history := entities.NewInwardMessage(userEntity, update.Message.Text)
 	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
 
 	aiOutput := th.ai.Process(engine.Input{Text: update.Message.Text})
@@ -94,5 +105,20 @@ func (th TelegramHandler) sendMessage(ctx context.Context, b *bot.Bot, chatId in
 	})
 	if err != nil {
 		log.Printf("[Telegram] Failed to send message to %d: %v", chatId, err)
+	}
+}
+
+func createUserEntityFromTelegramSender(telegramSender models.User, channel entities.ChannelEntity) *entities.UserEntity {
+
+	return &entities.UserEntity{
+		ID:   bson.NewObjectID(),
+		Name: telegramSender.FirstName,
+		UserChannels: []entities.UserChannel{
+			entities.UserChannel{
+				ChannelID:   channel.ID,
+				ChannelType: entities.ChannelTypeTelegramBot,
+				UserID:      string(telegramSender.ID),
+			},
+		},
 	}
 }

@@ -9,15 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-type ChannelType string
-
-const (
-	ChannelTypeTelegramBot ChannelType = "telegram"
-	ChannelTypeSlackBot    ChannelType = "slack"
-	ChannelTypeAudio       ChannelType = "audio"
-	ChannelTypeVideo       ChannelType = "video"
-)
-
 type ChannelEntity struct {
 	ID        bson.ObjectID  `bson:"_id"`
 	Name      string         `bson:"name"`
