@@ -1,7 +1,11 @@
 package engine
 
 import (
+	"log"
+
+	"github.com/bytedance/gopkg/util/logger"
 	"go.iain.rocks/alectryon/api/entities"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Input struct {
@@ -13,26 +17,34 @@ type Input struct {
 type Output struct {
 	Text       string
 	TokenCount int
+	Task       TaskResponse
 }
 
 type ReasonResponse struct {
-	Action  ActionType
-	History []ChatMessage
-	Latest  string
+	Type    ActionType    `json:"type"`
+	History []ChatMessage `json:"history"`
+	Latest  string        `json:"latest,omitempty"`
+	Task    TaskResponse  `json:"task"`
 }
 
 type ChatMessage struct {
-	Role    string
-	Content string
+	Role    string `json:"role"`
+	Content string `json:"content"`
+	TaskID  string `json:"task_id"`
+}
+
+type TaskResponse struct {
+	ID                  string            `json:"id"`
+	RequiredInformation map[string]string `json:"required_information"`
+	Description         string            `json:"description"`
+	Type                entities.TaskType `json:"type"`
 }
 
 type ActionType string
 
 const (
-	NewChatAction     ActionType = "new_chat"
-	ResumedChatAction ActionType = "resumed_chat"
-	GenerateAction    ActionType = "generate"
-	TaskAction        ActionType = "task"
+	NewTaskAction     ActionType = "new_task"
+	ResumedTaskAction ActionType = "resumed_task"
 )
 
 type EngineInterface interface {
@@ -41,7 +53,8 @@ type EngineInterface interface {
 
 type Engine struct {
 	ai                AiInterface
-	historyRepository entities.HistoryRepository
+	historyRepository *entities.HistoryRepository
+	taskRepository    *entities.TaskRepository
 }
 
 func (e Engine) Process(in Input) Output {
@@ -49,11 +62,26 @@ func (e Engine) Process(in Input) Output {
 
 	resp := e.ai.Reason(in)
 
+	if resp.Type == NewTaskAction {
+		taskEntity := ConvertTaskResponseToTask(resp.Task)
+		err := e.taskRepository.Save(taskEntity)
+		if err != nil {
+			logger.Error(err.Error())
+		}
+		resp.Task.ID = taskEntity.ID.Hex()
+	}
+
+	log.Print(resp.Type)
+
 	return e.ai.Process(*resp)
 }
 
-func NewEngine(ai AiInterface, historyRepository entities.HistoryRepository) EngineInterface {
-	return &Engine{ai: ai, historyRepository: historyRepository}
+func NewEngine(
+	ai AiInterface,
+	historyRepository *entities.HistoryRepository,
+	taskRepository *entities.TaskRepository,
+) EngineInterface {
+	return &Engine{ai: ai, historyRepository: historyRepository, taskRepository: taskRepository}
 }
 
 type AiInterface interface {
@@ -65,4 +93,14 @@ type SimpleAi struct{}
 
 func (s SimpleAi) Process(in Input) Output {
 	return Output{Text: "AI Response: " + in.Text}
+}
+func (s SimpleAi) Reason(input Input) *ReasonResponse { return &ReasonResponse{} }
+
+func ConvertTaskResponseToTask(taskResponse TaskResponse) *entities.TaskEntity {
+	return &entities.TaskEntity{
+		ID:                  bson.NewObjectID(),
+		Type:                taskResponse.Type,
+		Description:         taskResponse.Description,
+		RequiredInformation: taskResponse.RequiredInformation,
+	}
 }

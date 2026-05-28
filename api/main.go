@@ -21,26 +21,28 @@ func main() {
 	// Enable CORS for frontend access
 	r.Use(cors.Default())
 
-	mongo, err := createMongoDb()
+	mongoConn, err := createMongoDb()
 
 	if err != nil {
 		panic(err)
 	}
 
-	database := mongo.Database(os.Getenv("MONGODB_DATABASE"))
+	database := mongoConn.Database(os.Getenv("MONGODB_DATABASE"))
 	log.Print("Connected")
 	inputCollections := database.Collection("inputs")
 	historyCollection := database.Collection("history")
 	userCollection := database.Collection("users")
+	taskCollection := database.Collection("tasks")
 
-	repository := entities.NewChannelRepository(inputCollections)
-	inputHandlers := handlers.NewChannelHandlers(repository)
-
+	channelRepository := entities.NewChannelRepository(inputCollections)
 	historyRepository := entities.NewHistoryRepository(historyCollection)
 	userRepository := entities.NewUserRepository(userCollection)
+	taskRepository := entities.NewTaskRepository(taskCollection)
+
+	inputHandlers := handlers.NewChannelHandlers(channelRepository)
 
 	aiModel := vendor.NewOllama()
-	engine := engine.NewEngine(aiModel, *historyRepository)
+	engineObj := engine.NewEngine(aiModel, historyRepository, taskRepository)
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -48,7 +50,7 @@ func main() {
 		})
 	})
 	inputHandlers.AddHandlers(r)
-	go startChannels(repository, historyRepository, userRepository, engine)
+	go startChannels(channelRepository, historyRepository, userRepository, engineObj)
 
 	r.Run(":8080")
 }

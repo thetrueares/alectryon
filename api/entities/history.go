@@ -15,6 +15,7 @@ type HistoryEntity struct {
 	Direction string        `bson:"direction"`
 	Message   string        `bson:"message"`
 	Response  string        `bson:"response"`
+	Task      EmbeddedTask  `bson:"task"`
 	CreatedAt *time.Time    `bson:"created_at"`
 	UpdatedAt time.Time     `bson:"updated_at,omitempty"`
 }

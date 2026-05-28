@@ -93,6 +93,10 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 
 	aiOutput := th.ai.Process(engine.Input{Text: update.Message.Text, User: userEntity})
 	history.Response = aiOutput.Text
+	history.Task = entities.EmbeddedTask{
+		ID:          bson.ObjectID([]byte(aiOutput.Task.ID)),
+		Description: aiOutput.Task.Description,
+	}
 	th.repository.Save(history)
 
 	th.sendMessage(ctx, b, update.Message.Chat.ID, sender, aiOutput.Text)

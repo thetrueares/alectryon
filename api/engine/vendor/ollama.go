@@ -25,6 +25,7 @@ type ChatMessage struct {
 	Role      string `json:"role"`
 	Content   string `json:"content"`
 	Timestamp string `json:"timestamp"`
+	TaskID    string `json:"task_id"`
 }
 
 type ReasonResponse struct {
@@ -81,17 +82,22 @@ func (oa Ollama) Process(input engine.ReasonResponse) engine.Output {
 	}
 
 	output.TokenCount = 10 // Placeholder for token count
-
+	output.Task = input.Task
 	return output
 }
 
 func (oa Ollama) Reason(input engine.Input) *engine.ReasonResponse {
-	basePrompt := `With the following json body {history: [{role: \"user\", content: \"message\", timestamp: "2006-01-02T15:04:05Z07:00"}], latest: \"current_message\", timestamp: "2006-01-02T15:04:05Z07:00"}. 
-    The response must say if it's a new chat, a resumed chat, a task, or a generate request. And if it's a resumed chat the history that is related to the chat must be returned in the history. Otherwise, the history is to be empty.
-	For the it to be a new resumed chat the latest message must be related to the the history chat in subject.
-	A task is something that is meant to be done
-	The response must just be a json response with the body and no markdown {type: "resumed_chat|new_chat|task|generate", history: [{role: \"user\", content: \"message\"}], latest: "latest_message"}.
-	The request payload is %s`
+	basePrompt := `You are a personal assistant who has to reason what the latest message is and what the outcome of the message is. 
+If it's a new task you are provide a description of the task.  
+The related history must be directly related to the task. 
+In some cases more information is to be requested to be able to fullfil the task.
+With the following json body {history: [{role: "user", content: "message", timestamp: "2006-01-02T15:04:05Z07:00", task_id: "id"}], latest: "current_message", timestamp: "2006-01-02T15:04:05Z07:00"}.
+The response must say if it's a new task, an existing task, or a generate request. And if it's a resumed task the history that is related to the task must be returned in the history. Otherwise, the history is to be empty.
+For the it to be a resumed task the latest message must be related to the the history chat in subject.
+If the task is new then don't return a task id otherwise use the task id for the related history messages. All the related history messages must have the same task id.
+A task is something that is meant to be done. Some tasks are that something needs to be done, these are action verbs or needs. Some are provide information and these are when they ask questions.
+The response must just be a json response with the body and no markdown {type: "resumed_task|new_task", history: [{role: "user", content: "message", task_id: "id"], latest: "latest_message", "expected_outcome": "expected_outcome", task:{"id": "id"," "type": "PERFORM_ACTION|PROVIDE_INFORMATION"," "description": "new_description", required_information: {}}}.
+The request payload is %s`
 
 	messages := generateHistory(input.History)
 	reasonRequest := ReasonRequest{
@@ -171,6 +177,7 @@ func appendOllamaChatMessages(chatMessages []ChatMessage, history entities.Histo
 		Role:      firstRole,
 		Content:   history.Message,
 		Timestamp: history.CreatedAt.Format(time.RFC3339),
+		TaskID:    history.Task.ID.Hex(),
 	}
 	chatMessages = append(chatMessages, first)
 
@@ -179,6 +186,7 @@ func appendOllamaChatMessages(chatMessages []ChatMessage, history entities.Histo
 			Role:      secondRole,
 			Content:   history.Response,
 			Timestamp: history.CreatedAt.Format(time.RFC3339),
+			TaskID:    history.Task.ID.Hex(),
 		}
 
 		chatMessages = append(chatMessages, second)
