@@ -85,13 +85,13 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 
 	if err != nil {
 		userEntity = createUserEntityFromTelegramSender(*update.Message.From, th.channelEntity)
-		th.userRepository.Save(*userEntity)
+		th.userRepository.Save(userEntity)
 	}
 
 	history := entities.NewInwardMessage(userEntity, update.Message.Text)
 	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
 
-	aiOutput := th.ai.Process(engine.Input{Text: update.Message.Text})
+	aiOutput := th.ai.Process(engine.Input{Text: update.Message.Text, User: userEntity})
 	history.Response = aiOutput.Text
 	th.repository.Save(history)
 

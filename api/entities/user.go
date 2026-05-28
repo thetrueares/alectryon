@@ -37,7 +37,7 @@ type UserRepository struct {
 	collection *mongo.Collection
 }
 
-func (ur UserRepository) Save(user UserEntity) error {
+func (ur UserRepository) Save(user *UserEntity) error {
 
 	now := time.Now()
 	if user.CreatedAt == nil {

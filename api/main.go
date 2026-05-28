@@ -39,7 +39,7 @@ func main() {
 	historyRepository := entities.NewHistoryRepository(historyCollection)
 	userRepository := entities.NewUserRepository(userCollection)
 
-	aiModel := vendor.NewOllama(os.Getenv("OPENAI_API_KEY"))
+	aiModel := vendor.NewOllama()
 	engine := engine.NewEngine(aiModel, *historyRepository)
 
 	r.GET("/", func(c *gin.Context) {

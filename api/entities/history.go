@@ -60,6 +60,22 @@ func (hr HistoryRepository) GetLastFive() ([]HistoryEntity, error) {
 	return results, nil
 }
 
+func (hr HistoryRepository) GetLastTenForUser(user *UserEntity) ([]HistoryEntity, error) {
+	opts := options.Find().SetSort(bson.D{{"created_at", -1}}).SetLimit(10)
+	filter := bson.M{"user._id": user.ID}
+	cursor, err := hr.collection.Find(context.TODO(), filter, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []HistoryEntity
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 func NewInwardMessage(user *UserEntity, message string) HistoryEntity {
 	return newMessage(user, message, "inward")
 }

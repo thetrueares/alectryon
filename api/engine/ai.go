@@ -7,6 +7,7 @@ import (
 type Input struct {
 	Text    string
 	History []entities.HistoryEntity
+	User    *entities.UserEntity
 }
 
 type Output struct {
@@ -44,7 +45,7 @@ type Engine struct {
 }
 
 func (e Engine) Process(in Input) Output {
-	in.History, _ = e.historyRepository.GetLastFive()
+	in.History, _ = e.historyRepository.GetLastTenForUser(in.User)
 
 	resp := e.ai.Reason(in)
 

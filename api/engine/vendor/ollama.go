@@ -32,7 +32,7 @@ type ReasonResponse struct {
 	Type    engine.ActionType `json:"type"`
 }
 
-func NewOllama(apiKey string) *Ollama {
+func NewOllama() *Ollama {
 	client, _ := ollama.ClientFromEnvironment()
 
 	return &Ollama{client: client}
@@ -89,6 +89,7 @@ func (oa Ollama) Reason(input engine.Input) *engine.ReasonResponse {
 	basePrompt := `With the following json body {history: [{role: \"user\", content: \"message\", timestamp: "2006-01-02T15:04:05Z07:00"}], latest: \"current_message\", timestamp: "2006-01-02T15:04:05Z07:00"}. 
     The response must say if it's a new chat, a resumed chat, a task, or a generate request. And if it's a resumed chat the history that is related to the chat must be returned in the history. Otherwise, the history is to be empty.
 	For the it to be a new resumed chat the latest message must be related to the the history chat in subject.
+	A task is something that is meant to be done
 	The response must just be a json response with the body and no markdown {type: "resumed_chat|new_chat|task|generate", history: [{role: \"user\", content: \"message\"}], latest: "latest_message"}.
 	The request payload is %s`
 
