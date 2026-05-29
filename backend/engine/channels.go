@@ -33,7 +33,7 @@ func InputHandler(
 		userEntity, err := userRepository.FindByChannelSender(message.Channel.Type, message.User.ChannelUserID)
 
 		if err != nil {
-			userEntity = createUserEntityFromInputMessage(message)
+			userEntity = CreateUserEntityFromInputMessage(message)
 			userRepository.Save(userEntity)
 		}
 
@@ -55,7 +55,7 @@ func InputHandler(
 	}
 }
 
-func createUserEntityFromInputMessage(inputMessage InputMessage) *entities.UserEntity {
+func CreateUserEntityFromInputMessage(inputMessage InputMessage) *entities.UserEntity {
 
 	return &entities.UserEntity{
 		ID:   bson.NewObjectID(),

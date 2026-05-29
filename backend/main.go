@@ -39,17 +39,11 @@ func main() {
 	userRepository := entities.NewUserRepository(userCollection)
 	taskRepository := entities.NewTaskRepository(taskCollection)
 
-	inputHandlers := handlers.NewChannelHandlers(channelRepository)
+	channelHandlers := handlers.NewChannelHandlers(channelRepository)
+	channelHandlers.AddHandlers(r)
 
 	aiModel := provider.NewOllama()
 	engineObj := engine.NewEngine(aiModel, historyRepository, taskRepository)
-
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello World from Gin!",
-		})
-	})
-	inputHandlers.AddHandlers(r)
 
 	inputChan := make(chan engine.InputMessage)
 
