@@ -42,7 +42,7 @@ func main() {
 		})
 	})
 	inputHandlers.AddHandlers(r)
-	go startChannels(channelRepository, historyRepository, userRepository, engineObj)
+	go channels.StartChannels(channelRepository, historyRepository, userRepository, engineObj)
 
 	r.Run(":8080")
 }
@@ -59,23 +59,4 @@ func createMongoDb() *mongo.Database {
 	}
 
 	return mongoConn.Database(os.Getenv("MONGODB_DATABASE"))
-}
-
-func startChannels(
-	repository *entities.ChannelRepository,
-	historyRepository *entities.HistoryRepository,
-	userRepository *entities.UserRepository,
-	engine engine.EngineInterface,
-) {
-	inputModels, err := repository.GetAll()
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	for _, input := range inputModels {
-		if input.Type == entities.ChannelTypeTelegramBot {
-			go channels.StartTelegramBot(input, historyRepository, userRepository, engine)
-		}
-	}
 }

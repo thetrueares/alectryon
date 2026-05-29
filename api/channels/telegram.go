@@ -15,7 +15,12 @@ import (
 )
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
-func StartTelegramBot(channel entities.ChannelEntity, repository *entities.HistoryRepository, userRepository *entities.UserRepository, ai engine.EngineInterface) error {
+func StartTelegramBot(
+	channel entities.ChannelEntity,
+	repository *entities.HistoryRepository,
+	userRepository *entities.UserRepository,
+	ai engine.EngineInterface,
+) error {
 	if channel.Type != entities.ChannelTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", channel.Type)
 	}
