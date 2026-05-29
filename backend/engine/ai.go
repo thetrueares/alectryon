@@ -1,10 +1,8 @@
 package engine
 
 import (
-	"log"
-
-	"github.com/bytedance/gopkg/util/logger"
 	"go.iain.rocks/alectryon/backend/entities"
+	"go.uber.org/zap"
 )
 
 type Input struct {
@@ -40,6 +38,7 @@ type Engine struct {
 	ai                AiInterface
 	historyRepository *entities.HistoryRepository
 	taskRepository    *entities.TaskRepository
+	logger            *zap.Logger
 }
 
 func (e Engine) Process(in Input) Output {
@@ -51,12 +50,10 @@ func (e Engine) Process(in Input) Output {
 		taskEntity := ConvertTaskResponseToTask(resp.Task)
 		err := e.taskRepository.Save(taskEntity)
 		if err != nil {
-			logger.Error(err.Error())
+			e.logger.Error(err.Error())
 		}
 		resp.Task.ID = taskEntity.ID.Hex()
 	}
-
-	log.Print(resp.Type)
 
 	return e.ai.Process(*resp)
 }
@@ -65,8 +62,9 @@ func NewEngine(
 	ai AiInterface,
 	historyRepository *entities.HistoryRepository,
 	taskRepository *entities.TaskRepository,
+	logger *zap.Logger,
 ) EngineInterface {
-	return &Engine{ai: ai, historyRepository: historyRepository, taskRepository: taskRepository}
+	return &Engine{ai: ai, historyRepository: historyRepository, taskRepository: taskRepository, logger: logger}
 }
 
 type AiInterface interface {

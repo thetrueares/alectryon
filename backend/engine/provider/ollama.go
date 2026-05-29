@@ -11,6 +11,7 @@ import (
 	ollama "github.com/ollama/ollama/api"
 	"go.iain.rocks/alectryon/backend/engine"
 	"go.iain.rocks/alectryon/backend/entities"
+	"go.uber.org/zap"
 )
 
 const MODEL_NAME = "gemma4"
@@ -33,14 +34,15 @@ type ReasonResponse struct {
 	Type    engine.ActionType `json:"type"`
 }
 
-func NewOllama() *Ollama {
+func NewOllama(logger *zap.Logger) *Ollama {
 	client, _ := ollama.ClientFromEnvironment()
 
-	return &Ollama{client: client}
+	return &Ollama{client: client, logger: logger}
 }
 
 type Ollama struct {
 	client *ollama.Client
+	logger *zap.Logger
 }
 
 func (oa Ollama) Process(input engine.ReasonResponse) engine.Output {
@@ -115,7 +117,7 @@ The request payload is %s`
 
 	prompt := fmt.Sprintf(basePrompt, string(encodedStruct))
 
-	log.Printf("[Ollama] prompt \"%s\"\r\n", prompt)
+	oa.logger.Info(fmt.Sprintf("[Ollama] prompt \"%s\"\r\n", prompt))
 
 	stream := false
 	var output string
@@ -131,19 +133,19 @@ The request payload is %s`
 	})
 
 	if clientErr != nil {
-		log.Printf("[Ollama] error: \"%s\"\r\n", clientErr.Error())
+		oa.logger.Info(fmt.Sprintf("[Ollama] error: \"%s\"\r\n", clientErr.Error()))
 
 		return nil
 	}
 
-	log.Printf("[Ollama] reason response: %s\r\n", output)
+	oa.logger.Info(fmt.Sprintf("[Ollama] reason response: %s\r\n", output))
 
 	var reasonResp engine.ReasonResponse
 
 	err = json.Unmarshal([]byte(output), &reasonResp)
 
 	if err != nil {
-		log.Printf("[Ollama] error: \"%s\"\r\n", err.Error())
+		oa.logger.Error(fmt.Sprintf("[Ollama] error: \"%s\"\r\n", err.Error()))
 	}
 
 	return &reasonResp

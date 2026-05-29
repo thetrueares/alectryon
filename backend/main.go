@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/gin-contrib/cors"
+	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"go.iain.rocks/alectryon/backend/channels"
@@ -14,6 +16,7 @@ import (
 	"go.iain.rocks/alectryon/backend/handlers"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -23,8 +26,13 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	r := gin.Default()
+	r := gin.New()
 
+	logger, _ := zap.NewProduction()
+
+	r.Use(ginzap.Ginzap(logger, time.RFC3339, true))
+
+	r.Use(ginzap.RecoveryWithZap(logger, true))
 	// Enable CORS for frontend access
 	r.Use(cors.Default())
 
@@ -42,12 +50,12 @@ func main() {
 	channelHandlers := handlers.NewChannelHandlers(channelRepository)
 	channelHandlers.AddHandlers(r)
 
-	aiModel := provider.NewOllama()
-	engineObj := engine.NewEngine(aiModel, historyRepository, taskRepository)
+	aiModel := provider.NewOllama(logger)
+	engineObj := engine.NewEngine(aiModel, historyRepository, taskRepository, logger)
 
 	inputChan := make(chan engine.InputMessage)
 
-	go channels.StartChannels(channelRepository, inputChan)
+	go channels.StartChannels(channelRepository, inputChan, logger)
 	go engine.InputHandler(inputChan, historyRepository, userRepository, engineObj)
 	r.Run(":8080")
 }

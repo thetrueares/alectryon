@@ -8,13 +8,14 @@ import (
 	"go.iain.rocks/alectryon/backend/engine"
 	"go.iain.rocks/alectryon/backend/entities"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.uber.org/zap"
 )
 
 func TestStartTelegramBot_InvalidType(t *testing.T) {
 	input := &entities.ChannelEntity{
 		Type: entities.ChannelTypeSlackBot,
 	}
-	err := channels.StartTelegramBot(input, make(chan engine.InputMessage))
+	err := channels.StartTelegramBot(input, make(chan engine.InputMessage), zap.NewNop())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid input type")
 }
@@ -24,7 +25,7 @@ func TestStartTelegramBot_MissingToken(t *testing.T) {
 		Type:    entities.ChannelTypeTelegramBot,
 		Options: map[string]any{},
 	}
-	err := channels.StartTelegramBot(input, make(chan engine.InputMessage))
+	err := channels.StartTelegramBot(input, make(chan engine.InputMessage), zap.NewNop())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "bot_token not found")
 }
@@ -36,7 +37,7 @@ func TestStartTelegramBot_InvalidTokenFormat(t *testing.T) {
 			"bot_token": 12345,
 		},
 	}
-	err := channels.StartTelegramBot(input, make(chan engine.InputMessage))
+	err := channels.StartTelegramBot(input, make(chan engine.InputMessage), zap.NewNop())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "bot_token must be a string")
 }
@@ -48,7 +49,7 @@ func TestStartTelegramBot_EmptyToken(t *testing.T) {
 			"bot_token": "",
 		},
 	}
-	err := channels.StartTelegramBot(input, make(chan engine.InputMessage))
+	err := channels.StartTelegramBot(input, make(chan engine.InputMessage), zap.NewNop())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "bot_token is empty")
 }
@@ -63,6 +64,6 @@ func TestStartTelegramBot_InvalidTokenValue(t *testing.T) {
 			"bot_token": "invalid-token",
 		},
 	}
-	err := channels.StartTelegramBot(input, make(chan engine.InputMessage))
+	err := channels.StartTelegramBot(input, make(chan engine.InputMessage), zap.NewNop())
 	assert.Error(t, err)
 }

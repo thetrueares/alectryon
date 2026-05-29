@@ -4,19 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/go-telegram/bot"
 	telegrammodels "github.com/go-telegram/bot/models"
 	"go.iain.rocks/alectryon/backend/engine"
 	"go.iain.rocks/alectryon/backend/entities"
+	"go.uber.org/zap"
 )
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
 func StartTelegramBot(
 	channel *entities.ChannelEntity,
 	inputChan chan engine.InputMessage,
+	logger *zap.Logger,
 ) error {
 	if channel.Type != entities.ChannelTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", channel.Type)
@@ -37,7 +38,7 @@ func StartTelegramBot(
 	}
 
 	senderHandler := make(chan engine.OutputMessage)
-	handler := NewTelegramHandler(channel, inputChan, senderHandler)
+	handler := NewTelegramHandler(channel, inputChan, senderHandler, logger)
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(handler.handle),
@@ -48,11 +49,11 @@ func StartTelegramBot(
 		return fmt.Errorf("failed to create telegram bot: %w", err)
 	}
 
-	log.Printf("Starting Telegram bot for input: %s (%s)", channel.Name, channel.ID.Hex())
+	logger.Info(fmt.Sprintf("Starting Telegram bot for input: %s (%s)", channel.Name, channel.ID.Hex()))
 
 	// Start the bot in a goroutine
 	go b.Start(context.TODO())
-	go sendMessage(context.Background(), b, senderHandler)
+	go sendMessage(context.Background(), b, senderHandler, logger)
 
 	return nil
 }
@@ -61,11 +62,13 @@ func NewTelegramHandler(
 	channelEntity *entities.ChannelEntity,
 	inputChan chan engine.InputMessage,
 	senderHandler chan engine.OutputMessage,
+	logger *zap.Logger,
 ) *TelegramHandler {
 	return &TelegramHandler{
 		channelEntity: channelEntity,
 		inputChan:     inputChan,
 		senderHandler: senderHandler,
+		logger:        logger,
 	}
 }
 
@@ -75,6 +78,7 @@ type TelegramHandler struct {
 	channelEntity  *entities.ChannelEntity
 	inputChan      chan engine.InputMessage
 	senderHandler  chan engine.OutputMessage
+	logger         *zap.Logger
 }
 
 func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegrammodels.Update) {
@@ -94,7 +98,7 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 		}
 	}
 
-	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
+	th.logger.Info(fmt.Sprintf("[Telegram] Received message from %s: %s", sender, update.Message.Text))
 	channelUserId := strconv.FormatInt(update.Message.From.ID, 10)
 	inputMessage := engine.InputMessage{
 		Channel:       th.channelEntity,
@@ -109,15 +113,15 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 	th.inputChan <- inputMessage
 }
 
-func sendMessage(ctx context.Context, b *bot.Bot, outputMessage chan engine.OutputMessage) {
+func sendMessage(ctx context.Context, b *bot.Bot, outputMessage chan engine.OutputMessage, logger *zap.Logger) {
 	for message := range outputMessage {
 		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: message.InputUser.ChannelChatID,
 			Text:   message.Content,
 		})
-		log.Printf("[Telegram] Sent message to %s: %s", message.InputUser.Name, message.Content)
+		logger.Info(fmt.Sprintf("[Telegram] Sent message to %s: %s", message.InputUser.Name, message.Content))
 		if err != nil {
-			log.Printf("[Telegram] Failed to send message to %s: %v", message.InputUser.ChannelChatID, err)
+			logger.Error(fmt.Sprintf("[Telegram] Failed to send message to %s: %v", message.InputUser.ChannelChatID, err))
 		}
 	}
 }
