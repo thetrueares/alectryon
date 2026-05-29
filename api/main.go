@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/gin-contrib/cors"
@@ -21,14 +20,7 @@ func main() {
 	// Enable CORS for frontend access
 	r.Use(cors.Default())
 
-	mongoConn, err := createMongoDb()
-
-	if err != nil {
-		panic(err)
-	}
-
-	database := mongoConn.Database(os.Getenv("MONGODB_DATABASE"))
-	log.Print("Connected")
+	database := createMongoDb()
 	inputCollections := database.Collection("inputs")
 	historyCollection := database.Collection("history")
 	userCollection := database.Collection("users")
@@ -55,12 +47,18 @@ func main() {
 	r.Run(":8080")
 }
 
-func createMongoDb() (*mongo.Client, error) {
+func createMongoDb() *mongo.Database {
 	uri := os.Getenv("MONGODB_URI")
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
-	return mongo.Connect(opts)
+	mongoConn, err := mongo.Connect(opts)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return mongoConn.Database(os.Getenv("MONGODB_DATABASE"))
 }
 
 func startChannels(
