@@ -29,12 +29,12 @@ func main() {
 	r.Use(cors.Default())
 
 	database := createMongoDb()
-	inputCollections := database.Collection("inputs")
+	channelCollections := database.Collection("channels")
 	historyCollection := database.Collection("history")
 	userCollection := database.Collection("users")
 	taskCollection := database.Collection("tasks")
 
-	channelRepository := entities.NewChannelRepository(inputCollections)
+	channelRepository := entities.NewChannelRepository(channelCollections)
 	historyRepository := entities.NewHistoryRepository(historyCollection)
 	userRepository := entities.NewUserRepository(userCollection)
 	taskRepository := entities.NewTaskRepository(taskCollection)
