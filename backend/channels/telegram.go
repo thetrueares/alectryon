@@ -16,7 +16,7 @@ import (
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
 func StartTelegramBot(
 	channel *entities.ChannelEntity,
-	messageHandler chan engine.InputMessage,
+	inputChan chan engine.InputMessage,
 ) error {
 	if channel.Type != entities.ChannelTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", channel.Type)
@@ -37,7 +37,7 @@ func StartTelegramBot(
 	}
 
 	senderHandler := make(chan engine.OutputMessage)
-	handler := NewTelegramHandler(channel, messageHandler, senderHandler)
+	handler := NewTelegramHandler(channel, inputChan, senderHandler)
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(handler.handle),
@@ -59,13 +59,13 @@ func StartTelegramBot(
 
 func NewTelegramHandler(
 	channelEntity *entities.ChannelEntity,
-	messageHandler chan engine.InputMessage,
+	inputChan chan engine.InputMessage,
 	senderHandler chan engine.OutputMessage,
 ) *TelegramHandler {
 	return &TelegramHandler{
-		channelEntity:  channelEntity,
-		messageHandler: messageHandler,
-		senderHandler:  senderHandler,
+		channelEntity: channelEntity,
+		inputChan:     inputChan,
+		senderHandler: senderHandler,
 	}
 }
 
@@ -73,7 +73,7 @@ type TelegramHandler struct {
 	repository     *entities.HistoryRepository
 	userRepository *entities.UserRepository
 	channelEntity  *entities.ChannelEntity
-	messageHandler chan engine.InputMessage
+	inputChan      chan engine.InputMessage
 	senderHandler  chan engine.OutputMessage
 }
 
@@ -106,7 +106,7 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 			Name:          sender,
 		},
 	}
-	th.messageHandler <- inputMessage
+	th.inputChan <- inputMessage
 }
 
 func sendMessage(ctx context.Context, b *bot.Bot, outputMessage chan engine.OutputMessage) {

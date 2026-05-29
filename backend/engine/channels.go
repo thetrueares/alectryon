@@ -23,13 +23,13 @@ type OutputMessage struct {
 	InputUser InputUser
 }
 
-func MessageHandler(
-	input chan InputMessage,
+func InputHandler(
+	inputChan chan InputMessage,
 	historyRepository *entities.HistoryRepository,
 	userRepository *entities.UserRepository,
 	ai EngineInterface,
 ) {
-	for message := range input {
+	for message := range inputChan {
 		userEntity, err := userRepository.FindByChannelSender(message.Channel.Type, message.User.ChannelUserID)
 
 		if err != nil {
