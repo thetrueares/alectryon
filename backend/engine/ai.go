@@ -73,10 +73,3 @@ type AiInterface interface {
 	Process(input ReasonResponse) Output
 	Reason(input Input) *ReasonResponse
 }
-
-type SimpleAi struct{}
-
-func (s SimpleAi) Process(in Input) Output {
-	return Output{Text: "AI Response: " + in.Text}
-}
-func (s SimpleAi) Reason(input Input) *ReasonResponse { return &ReasonResponse{} }
