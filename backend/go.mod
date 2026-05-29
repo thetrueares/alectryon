@@ -1,4 +1,4 @@
-module go.iain.rocks/alectryon/api
+module go.iain.rocks/alectryon/backend
 
 go 1.26.3
 

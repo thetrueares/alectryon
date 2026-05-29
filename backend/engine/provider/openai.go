@@ -6,7 +6,7 @@ import (
 	openai "github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 	"github.com/openai/openai-go/v3/responses"
-	"go.iain.rocks/alectryon/api/engine"
+	"go.iain.rocks/alectryon/backend/engine"
 )
 
 func NewOpenAI(apiKey string) *OpenAI {

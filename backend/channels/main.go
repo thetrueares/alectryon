@@ -3,8 +3,8 @@ package channels
 import (
 	"log"
 
-	"go.iain.rocks/alectryon/api/engine"
-	"go.iain.rocks/alectryon/api/entities"
+	"go.iain.rocks/alectryon/backend/engine"
+	"go.iain.rocks/alectryon/backend/entities"
 )
 
 func StartChannels(

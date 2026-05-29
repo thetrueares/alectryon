@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/bytedance/gopkg/util/logger"
-	"go.iain.rocks/alectryon/api/entities"
+	"go.iain.rocks/alectryon/backend/entities"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

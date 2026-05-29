@@ -4,11 +4,11 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'api/**'
+      - '../../backend/**'
   pull_request:
     branches: [ main ]
     paths:
-      - 'api/**'
+      - '../../backend/**'
 
 jobs:
   build-and-test:
@@ -20,16 +20,16 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.26.3'
-          cache-dependency-path: api/go.sum
+          cache-dependency-path: backend/go.sum
 
       - name: Install dependencies
         run: go mod download
-        working-directory: api
+        working-directory: backend
 
       - name: Build
         run: go build -v ./...
-        working-directory: api
+        working-directory: backend
 
       - name: Test
         run: go test -v ./...
-        working-directory: api
+        working-directory: backend

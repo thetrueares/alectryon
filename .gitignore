@@ -1,6 +1,6 @@
 web/node_modules
 web/dist
 
-api/tmp
+backend/tmp
 
 .idea

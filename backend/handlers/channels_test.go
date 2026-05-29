@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.iain.rocks/alectryon/api/entities"
-	"go.iain.rocks/alectryon/api/handlers"
+	"go.iain.rocks/alectryon/backend/entities"
+	"go.iain.rocks/alectryon/backend/handlers"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

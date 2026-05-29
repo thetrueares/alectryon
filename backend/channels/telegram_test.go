@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.iain.rocks/alectryon/api/channels"
-	"go.iain.rocks/alectryon/api/engine"
-	"go.iain.rocks/alectryon/api/entities"
+	"go.iain.rocks/alectryon/backend/channels"
+	"go.iain.rocks/alectryon/backend/engine"
+	"go.iain.rocks/alectryon/backend/entities"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

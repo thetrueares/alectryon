@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 
-	"go.iain.rocks/alectryon/api/engine"
+	"go.iain.rocks/alectryon/backend/engine"
 	"google.golang.org/genai"
 )
 
