@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.iain.rocks/alectryon/api/channels"
 	"go.iain.rocks/alectryon/api/engine"
-	"go.iain.rocks/alectryon/api/engine/vendor"
+	"go.iain.rocks/alectryon/api/engine/provider"
 	"go.iain.rocks/alectryon/api/entities"
 	"go.iain.rocks/alectryon/api/handlers"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -33,7 +33,7 @@ func main() {
 
 	inputHandlers := handlers.NewChannelHandlers(channelRepository)
 
-	aiModel := vendor.NewOllama()
+	aiModel := provider.NewOllama()
 	engineObj := engine.NewEngine(aiModel, historyRepository, taskRepository)
 
 	r.GET("/", func(c *gin.Context) {
