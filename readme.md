@@ -11,7 +11,7 @@ Project goal: This is to be a private AI helper that is extremely specific to my
 
 Separated out into the two separate codebases. 
 
-## Api 
+## Backend 
 
 | Variable Name | Example              | Description |
 | --- |----------------------| --- |
