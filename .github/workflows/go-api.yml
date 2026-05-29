@@ -1,14 +1,14 @@
-name: Go API CI
+name: Go Backend CI
 
 on:
   push:
     branches: [ main ]
     paths:
-      - '../../backend/**'
+      - 'backend/**'
   pull_request:
     branches: [ main ]
     paths:
-      - '../../backend/**'
+      - 'backend/**'
 
 jobs:
   build-and-test:
