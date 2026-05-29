@@ -50,8 +50,11 @@ func main() {
 		})
 	})
 	inputHandlers.AddHandlers(r)
-	go channels.StartChannels(channelRepository, historyRepository, userRepository, engineObj)
 
+	messageHandler := make(chan engine.InputMessage)
+
+	go channels.StartChannels(channelRepository, messageHandler)
+	go engine.MessageHandler(messageHandler, historyRepository, userRepository, engineObj)
 	r.Run(":8080")
 }
 

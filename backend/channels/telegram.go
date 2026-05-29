@@ -11,15 +11,12 @@ import (
 	telegrammodels "github.com/go-telegram/bot/models"
 	"go.iain.rocks/alectryon/backend/engine"
 	"go.iain.rocks/alectryon/backend/entities"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // StartTelegramBot initializes and starts a Telegram bot based on the provided input model.
 func StartTelegramBot(
-	channel entities.ChannelEntity,
-	repository *entities.HistoryRepository,
-	userRepository *entities.UserRepository,
-	ai engine.EngineInterface,
+	channel *entities.ChannelEntity,
+	messageHandler chan engine.InputMessage,
 ) error {
 	if channel.Type != entities.ChannelTypeTelegramBot {
 		return fmt.Errorf("invalid input type for telegram: %s", channel.Type)
@@ -39,7 +36,8 @@ func StartTelegramBot(
 		return errors.New("bot_token is empty")
 	}
 
-	handler := NewTelegramHandler(channel, repository, userRepository, ai)
+	senderHandler := make(chan engine.OutputMessage)
+	handler := NewTelegramHandler(channel, messageHandler, senderHandler)
 
 	opts := []bot.Option{
 		bot.WithDefaultHandler(handler.handle),
@@ -54,19 +52,29 @@ func StartTelegramBot(
 
 	// Start the bot in a goroutine
 	go b.Start(context.TODO())
+	go sendMessage(context.Background(), b, senderHandler)
 
 	return nil
 }
 
-func NewTelegramHandler(channelEntity entities.ChannelEntity, repository *entities.HistoryRepository, userRepository *entities.UserRepository, ai engine.EngineInterface) *TelegramHandler {
-	return &TelegramHandler{repository: repository, userRepository: userRepository, ai: ai, channelEntity: channelEntity}
+func NewTelegramHandler(
+	channelEntity *entities.ChannelEntity,
+	messageHandler chan engine.InputMessage,
+	senderHandler chan engine.OutputMessage,
+) *TelegramHandler {
+	return &TelegramHandler{
+		channelEntity:  channelEntity,
+		messageHandler: messageHandler,
+		senderHandler:  senderHandler,
+	}
 }
 
 type TelegramHandler struct {
 	repository     *entities.HistoryRepository
 	userRepository *entities.UserRepository
-	ai             engine.EngineInterface
-	channelEntity  entities.ChannelEntity
+	channelEntity  *entities.ChannelEntity
+	messageHandler chan engine.InputMessage
+	senderHandler  chan engine.OutputMessage
 }
 
 func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegrammodels.Update) {
@@ -74,60 +82,42 @@ func (th TelegramHandler) handle(ctx context.Context, b *bot.Bot, update *telegr
 		return
 	}
 
-	sender := "unknown"
-	if update.Message.From != nil {
-		sender = update.Message.From.Username
-		if sender == "" {
-			sender = update.Message.From.FirstName
-		}
-	}
-
 	if update.Message.Text == "" {
 		return
 	}
 
-	userEntity, err := th.userRepository.FindByChannelSender(entities.ChannelTypeTelegramBot, strconv.FormatInt(update.Message.From.ID, 10))
-
-	if err != nil {
-		userEntity = createUserEntityFromTelegramSender(*update.Message.From, th.channelEntity)
-		th.userRepository.Save(userEntity)
+	sender := "unknown"
+	if update.Message.From != nil {
+		sender = update.Message.From.Username
+		if sender == "" {
+			sender = fmt.Sprintf("%s %s", update.Message.From.FirstName, update.Message.From.LastName)
+		}
 	}
 
-	history := entities.NewInwardMessage(userEntity, update.Message.Text)
 	log.Printf("[Telegram] Received message from %s: %s", sender, update.Message.Text)
-
-	aiOutput := th.ai.Process(engine.Input{Text: update.Message.Text, User: userEntity})
-	history.Response = aiOutput.Text
-	history.Task = entities.EmbeddedTask{
-		ID:          bson.ObjectID([]byte(aiOutput.Task.ID)),
-		Description: aiOutput.Task.Description,
-	}
-	th.repository.Save(history)
-
-	th.sendMessage(ctx, b, update.Message.Chat.ID, sender, aiOutput.Text)
-}
-
-func (th TelegramHandler) sendMessage(ctx context.Context, b *bot.Bot, chatId int64, user, message string) {
-	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: chatId,
-		Text:   message,
-	})
-	if err != nil {
-		log.Printf("[Telegram] Failed to send message to %d: %v", chatId, err)
-	}
-}
-
-func createUserEntityFromTelegramSender(telegramSender telegrammodels.User, channel entities.ChannelEntity) *entities.UserEntity {
-
-	return &entities.UserEntity{
-		ID:   bson.NewObjectID(),
-		Name: telegramSender.FirstName,
-		UserChannels: []entities.UserChannel{
-			{
-				ChannelID:   channel.ID,
-				ChannelType: entities.ChannelTypeTelegramBot,
-				UserID:      strconv.FormatInt(telegramSender.ID, 10),
-			},
+	channelUserId := strconv.FormatInt(update.Message.From.ID, 10)
+	inputMessage := engine.InputMessage{
+		Channel:       th.channelEntity,
+		Content:       update.Message.Text,
+		SenderHandler: th.senderHandler,
+		User: engine.InputUser{
+			ChannelUserID: channelUserId,
+			ChannelChatID: strconv.FormatInt(update.Message.Chat.ID, 10),
+			Name:          sender,
 		},
+	}
+	th.messageHandler <- inputMessage
+}
+
+func sendMessage(ctx context.Context, b *bot.Bot, outputMessage chan engine.OutputMessage) {
+	for message := range outputMessage {
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: message.InputUser.ChannelChatID,
+			Text:   message.Content,
+		})
+		log.Printf("[Telegram] Sent message to %s: %s", message.InputUser.Name, message.Content)
+		if err != nil {
+			log.Printf("[Telegram] Failed to send message to %s: %v", message.InputUser.ChannelChatID, err)
+		}
 	}
 }
