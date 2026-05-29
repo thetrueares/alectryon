@@ -6,3 +6,14 @@ An AI helper system.
 [![Go API CI](https://github.com/thetrueares/alectryon/actions/workflows/go-api.yml/badge.svg)](https://github.com/thetrueares/alectryon/actions/workflows/go-api.yml)
 
 Project goal: This is to be a private AI helper that is extremely specific to my needs. It's not meant to compete with openclaw or Thoth.
+
+# Env Variables
+
+Separated out into the two separate codebases. 
+
+## Api 
+
+| Variable Name | Example              | Description |
+| --- |----------------------| --- |
+| MONGODB_URL | mongodb://localhost  | The mongodb dsn url |
+| MONGODB_DATABASE | devdatabase | The mongodb database to be used |

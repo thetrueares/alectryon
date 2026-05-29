@@ -1,10 +1,12 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"go.iain.rocks/alectryon/api/channels"
 	"go.iain.rocks/alectryon/api/engine"
 	"go.iain.rocks/alectryon/api/engine/provider"
@@ -15,6 +17,12 @@ import (
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	r := gin.Default()
 
 	// Enable CORS for frontend access
