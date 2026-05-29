@@ -27,5 +27,4 @@ func TestCreateUserEntityFromInputMessage(t *testing.T) {
 	assert.Equal(t, "third-id-one", userEntity.UserChannels[0].UserID)
 	assert.Equal(t, inputMessage.Channel.ID, userEntity.UserChannels[0].ChannelID)
 	assert.Equal(t, entities.ChannelTypeTelegramBot, userEntity.UserChannels[0].ChannelType)
-
 }

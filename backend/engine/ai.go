@@ -5,7 +5,6 @@ import (
 
 	"github.com/bytedance/gopkg/util/logger"
 	"go.iain.rocks/alectryon/backend/entities"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type Input struct {
@@ -32,20 +31,6 @@ type ChatMessage struct {
 	Content string `json:"content"`
 	TaskID  string `json:"task_id"`
 }
-
-type TaskResponse struct {
-	ID                  string            `json:"id"`
-	RequiredInformation map[string]string `json:"required_information"`
-	Description         string            `json:"description"`
-	Type                entities.TaskType `json:"type"`
-}
-
-type ActionType string
-
-const (
-	NewTaskAction     ActionType = "new_task"
-	ResumedTaskAction ActionType = "resumed_task"
-)
 
 type EngineInterface interface {
 	Process(in Input) Output
@@ -95,12 +80,3 @@ func (s SimpleAi) Process(in Input) Output {
 	return Output{Text: "AI Response: " + in.Text}
 }
 func (s SimpleAi) Reason(input Input) *ReasonResponse { return &ReasonResponse{} }
-
-func ConvertTaskResponseToTask(taskResponse TaskResponse) *entities.TaskEntity {
-	return &entities.TaskEntity{
-		ID:                  bson.NewObjectID(),
-		Type:                taskResponse.Type,
-		Description:         taskResponse.Description,
-		RequiredInformation: taskResponse.RequiredInformation,
-	}
-}
