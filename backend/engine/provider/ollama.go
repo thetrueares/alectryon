@@ -71,6 +71,7 @@ func (oa Ollama) Process(input engine.ProcessedMessage) engine.Output {
 		return nil
 	})
 
+	oa.logger.Info(fmt.Sprintf("[Ollama] process response: %s\r\n", output.Text))
 	if err != nil {
 		return engine.Output{
 			Text:       "Ollama error: " + err.Error(),
@@ -81,6 +82,42 @@ func (oa Ollama) Process(input engine.ProcessedMessage) engine.Output {
 	output.TokenCount = 10 // Placeholder for token count
 	output.Task = input.Task
 	return output
+}
+
+func (oa Ollama) AnalyseTask(input *engine.ReasonResponse) engine.TaskWorkOutput {
+	encodedStruct, err := json.Marshal(input)
+
+	if err != nil {
+		oa.logger.Error(fmt.Sprintf("[Ollama] json encoding failure \"%s\"\r\n", err.Error()))
+		return engine.TaskWorkOutput{}
+	}
+
+	prompt := fmt.Sprintf(engine.PromptTaskNextStep, string(encodedStruct))
+	generateRequest := newGenerateRequest(prompt)
+	jsonRequest, err := json.Marshal(generateRequest)
+
+	if err != nil {
+		oa.logger.Error(fmt.Sprintf("[Ollama] json marshalling error: \"%s\"\r\n", err.Error()))
+		return engine.TaskWorkOutput{}
+	}
+
+	var output string
+	oa.logger.Info(fmt.Sprintf("[Ollama] json request \"%s\"\r\n", string(jsonRequest)))
+	err = oa.client.Generate(context.TODO(), generateRequest, func(resp ollama.GenerateResponse) error {
+		output = resp.Response
+		return nil
+	})
+
+	oa.logger.Info(fmt.Sprintf("[Ollama] analyse task response: %s\r\n", output))
+	var reasonResp engine.TaskWorkOutput
+
+	err = json.Unmarshal([]byte(output), &reasonResp)
+
+	if err != nil {
+		oa.logger.Error(fmt.Sprintf("[Ollama] error: \"%s\"\r\n", err.Error()))
+	}
+
+	return reasonResp
 }
 
 func (oa Ollama) Reason(input engine.Input) *engine.ReasonResponse {

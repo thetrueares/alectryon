@@ -53,23 +53,39 @@ func (e Engine) Process(in Input) Output {
 	in.History, _ = e.historyRepository.GetLastTenForUser(in.User)
 
 	resp := e.ai.Reason(in)
+	var taskEntity *entities.TaskEntity
+	var err error
 
 	if resp.Type == NewTaskAction {
-		taskEntity := ConvertTaskResponseToTask(resp.Task)
-		err := e.taskRepository.Save(taskEntity)
+		taskEntity = ConvertTaskResponseToTask(resp.Task)
+		err = e.taskRepository.Save(taskEntity)
+		resp.Task.ID = taskEntity.ID.Hex()
+
+	} else if resp.Type == ResumedTaskAction {
+		e.logger.Info("Fetching resumed task", zap.String("task_id", resp.Task.ID))
+		taskEntity, err = e.taskRepository.FindById(resp.Task.ID)
 
 		if err != nil {
-			e.logger.Error("Error saving task to database", zap.Any("error", err.Error()))
+			e.logger.Info("Couldn't find resumed task", zap.String("task_id", resp.Task.ID))
+			taskEntity = ConvertTaskResponseToTask(resp.Task)
+			e.taskRepository.Save(taskEntity)
 		}
-
-		resp.Task.ID = taskEntity.ID.Hex()
+	} else {
+		outcome := ProcessedMessage{
+			LatestMessage: in.Text,
+		}
+		return e.ai.Process(outcome)
 	}
 
 	e.logger.Info("Processing output", zap.String("res", in.Text))
+	taskWork := e.ai.AnalyseTask(resp)
+
+	taskEntity = AppendTaskWorkOutput(taskEntity, taskWork)
+	e.taskRepository.Save(taskEntity)
 
 	outcome := ProcessedMessage{
 		Task:                 resp.Task,
-		LatestTaskWorkOutput: TaskWorkOutput{},
+		LatestTaskWorkOutput: taskWork,
 		LatestMessage:        in.Text,
 	}
 	return e.ai.Process(outcome)
@@ -87,4 +103,5 @@ func NewEngine(
 type AiInterface interface {
 	Process(input ProcessedMessage) Output
 	Reason(input Input) *ReasonResponse
+	AnalyseTask(input *ReasonResponse) TaskWorkOutput
 }

@@ -2,6 +2,7 @@ package entities
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -24,24 +25,28 @@ const (
 )
 
 type TaskEntity struct {
-	ID                  bson.ObjectID            `bson:"_id,omitempty"`
-	User                EmbeddedUser             `bson:"user"`
-	Status              string                   `bson:"status"`
-	Type                TaskType                 `bson:"type"`
-	RequiredInformation map[string]string        `bson:"required_information"`
-	Description         string                   `bson:"description"`
-	TaskWorkOutput      []EmbeddedTaskWorkOutput `bson:"task_work_output"`
-	CreatedAt           time.Time                `bson:"created_at"`
-	UpdatedAt           time.Time                `bson:"updated_at"`
+	ID                  bson.ObjectID                              `bson:"_id,omitempty"`
+	User                EmbeddedUser                               `bson:"user"`
+	Status              string                                     `bson:"status"`
+	Type                TaskType                                   `bson:"type"`
+	RequiredInformation map[string]EmbeddedRequiredInformationData `bson:"required_information"`
+	Description         string                                     `bson:"description"`
+	TaskWorkOutput      []EmbeddedTaskWorkOutput                   `bson:"task_work_output"`
+	CreatedAt           time.Time                                  `bson:"created_at"`
+	UpdatedAt           time.Time                                  `bson:"updated_at"`
 }
 type EmbeddedTaskWorkOutput struct {
-	Content  string `bson:"content"`
+	WorkDone string `bson:"work_done"`
 	Complete bool   `bson:"complete"`
 	NextStep string `bson:"next_step"`
 }
 type EmbeddedTask struct {
 	ID          bson.ObjectID `bson:"_id,omitempty"`
 	Description string        `bson:"description"`
+}
+type EmbeddedRequiredInformationData struct {
+	Required bool `bson:"required"`
+	Value    any  `bson:"value"`
 }
 
 func NewTaskRepository(collection *mongo.Collection) *TaskRepository {
@@ -68,4 +73,21 @@ func (tr TaskRepository) Save(task *TaskEntity) error {
 	}
 
 	return nil
+}
+
+func (tr TaskRepository) FindById(id string) (*TaskEntity, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+
+	log.Printf("objectID: %v", objectID)
+	if err != nil {
+		return nil, err
+	}
+
+	var task TaskEntity
+	err = tr.collection.FindOne(context.TODO(), bson.M{"_id": objectID}).Decode(&task)
+	if err != nil {
+		return nil, err
+	}
+
+	return &task, nil
 }

@@ -10,13 +10,14 @@ type ActionType string
 const (
 	NewTaskAction     ActionType = "new_task"
 	ResumedTaskAction ActionType = "resumed_task"
+	ChatMessageAction ActionType = "chat_message"
 )
 
 type TaskResponse struct {
-	ID                  string            `json:"id"`
-	RequiredInformation map[string]string `json:"required_information"`
-	Description         string            `json:"description"`
-	Type                entities.TaskType `json:"type"`
+	ID                  string                                              `json:"id"`
+	RequiredInformation map[string]entities.EmbeddedRequiredInformationData `json:"required_information"`
+	Description         string                                              `json:"description"`
+	Type                entities.TaskType                                   `json:"type"`
 }
 
 func ConvertTaskResponseToTask(taskResponse TaskResponse) *entities.TaskEntity {
@@ -29,17 +30,25 @@ func ConvertTaskResponseToTask(taskResponse TaskResponse) *entities.TaskEntity {
 }
 
 func AppendTaskWorkOutput(task *entities.TaskEntity, taskwork TaskWorkOutput) *entities.TaskEntity {
+	if task == nil {
+		// Handle the error gracefully or return early
+		return task
+	}
 	embedded := entities.EmbeddedTaskWorkOutput{
-		Content:  taskwork.Content,
+		WorkDone: taskwork.WorkDone,
 		Complete: taskwork.Complete,
 		NextStep: taskwork.NextStep,
+	}
+	if task.TaskWorkOutput == nil {
+		task.TaskWorkOutput = []entities.EmbeddedTaskWorkOutput{}
 	}
 	task.TaskWorkOutput = append(task.TaskWorkOutput, embedded)
 	return task
 }
 
 type TaskWorkOutput struct {
-	Content  string `json:"content"`
-	Complete bool   `json:"complete"`
-	NextStep string `json:"next_step"`
+	Complete bool         `json:"complete"`
+	WorkDone string       `json:"work_done"`
+	NextStep string       `json:"next_step"`
+	Task     TaskResponse `json:"task"`
 }
