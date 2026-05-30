@@ -116,8 +116,6 @@ The request payload is %s`
 
 	prompt := fmt.Sprintf(basePrompt, string(encodedStruct))
 
-	oa.logger.Debug(fmt.Sprintf("[Ollama] prompt \"%s\"\r\n", prompt))
-
 	stream := false
 	var output string
 	generateRequest := &ollama.GenerateRequest{
@@ -125,6 +123,17 @@ The request payload is %s`
 		Prompt: prompt,
 		Stream: &stream,
 	}
+
+	jsonRequest, err := json.Marshal(generateRequest)
+
+	if err != nil {
+		oa.logger.Error(fmt.Sprintf("[Ollama] json marshalling error: \"%s\"\r\n", err.Error()))
+
+		return nil
+	}
+
+	oa.logger.Info(fmt.Sprintf("[Ollama] json request \"%s\"\r\n", string(jsonRequest)))
+
 	clientErr := oa.client.Generate(context.TODO(), generateRequest, func(resp ollama.GenerateResponse) error {
 		output += resp.Response
 
@@ -137,7 +146,7 @@ The request payload is %s`
 		return nil
 	}
 
-	oa.logger.Debug(fmt.Sprintf("[Ollama] reason response: %s\r\n", output))
+	oa.logger.Info(fmt.Sprintf("[Ollama] reason response: %s\r\n", output))
 
 	var reasonResp engine.ReasonResponse
 

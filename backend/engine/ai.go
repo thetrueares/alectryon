@@ -59,6 +59,7 @@ func (e Engine) Process(in Input) Output {
 		resp.Task.ID = taskEntity.ID.Hex()
 	}
 
+	e.logger.Info("Processing output", zap.String("res", in.Text))
 	return e.ai.Process(*resp)
 }
 
