@@ -24,16 +24,21 @@ const (
 )
 
 type TaskEntity struct {
-	ID                  bson.ObjectID     `bson:"_id,omitempty"`
-	User                EmbeddedUser      `bson:"user"`
-	Status              string            `bson:"status"`
-	Type                TaskType          `bson:"type"`
-	RequiredInformation map[string]string `bson:"required_information"`
-	Description         string            `bson:"description"`
-	CreatedAt           time.Time         `bson:"created_at"`
-	UpdatedAt           time.Time         `bson:"updated_at"`
+	ID                  bson.ObjectID            `bson:"_id,omitempty"`
+	User                EmbeddedUser             `bson:"user"`
+	Status              string                   `bson:"status"`
+	Type                TaskType                 `bson:"type"`
+	RequiredInformation map[string]string        `bson:"required_information"`
+	Description         string                   `bson:"description"`
+	TaskWorkOutput      []EmbeddedTaskWorkOutput `bson:"task_work_output"`
+	CreatedAt           time.Time                `bson:"created_at"`
+	UpdatedAt           time.Time                `bson:"updated_at"`
 }
-
+type EmbeddedTaskWorkOutput struct {
+	Content  string `bson:"content"`
+	Complete bool   `bson:"complete"`
+	NextStep string `bson:"next_step"`
+}
 type EmbeddedTask struct {
 	ID          bson.ObjectID `bson:"_id,omitempty"`
 	Description string        `bson:"description"`

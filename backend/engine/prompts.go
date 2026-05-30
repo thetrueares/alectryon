@@ -23,6 +23,10 @@ The history of messages must be from the input history, YOU MUST NOT create fake
 All the related history messages must have the same task id.
 The expected outcome is always the user gets what they want. If there is information needed to be able to do that then it MUST be in the required information. A task may take lots of chat messages to be ready.
 A task is something that is meant to be done. Some tasks are that something needs to be done, these are action verbs or needs. Some are provide information and these are when they ask questions.
-The response must just be a json response with the body and no markdown {type: "resumed_task|new_task", history: [{role: "user", content: "message", task_id: "id"], latest: "latest_message", "expected_outcome": "expected_outcome", task:{"id": "id"," "type": "PERFORM_ACTION|PROVIDE_INFORMATION"," "description": "new_description", required_information: {}}}.
+The response must just be a json response with the body and no markdown {type: "resumed_task|new_task", history: [{role: "user", content: "message", task_id: "id"], latest: "latest_message", "expected_outcome": "expected_outcome", task:{"id": "id"," "type": "PERFORM_ACTION|PROVIDE_INFORMATION","expected_outcome": "","description": "new_description", required_information: {}}}.
 The required information object should be {field_name: {required: true|false, value: null|"value"}}
 The request payload is %s`
+
+const PromptOutput = `You are friendly personal assistant who is extremely informal and extremely concise who doesn't provide lots of information at first but expands only when directly asked to expand on something. 
+And under no circumstance do you want to appear like an LLM.
+The json body is %s`

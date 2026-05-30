@@ -30,6 +30,12 @@ type ChatMessage struct {
 	TaskID  string `json:"task_id"`
 }
 
+type ProcessedMessage struct {
+	Task                 TaskResponse   `json:"task"`
+	LatestTaskWorkOutput TaskWorkOutput `json:"latest_task_work_output"`
+	LatestMessage        string         `json:"latest_message"`
+}
+
 type EngineInterface interface {
 	Process(in Input) Output
 }
@@ -60,7 +66,13 @@ func (e Engine) Process(in Input) Output {
 	}
 
 	e.logger.Info("Processing output", zap.String("res", in.Text))
-	return e.ai.Process(*resp)
+
+	outcome := ProcessedMessage{
+		Task:                 resp.Task,
+		LatestTaskWorkOutput: TaskWorkOutput{},
+		LatestMessage:        in.Text,
+	}
+	return e.ai.Process(outcome)
 }
 
 func NewEngine(
@@ -73,6 +85,6 @@ func NewEngine(
 }
 
 type AiInterface interface {
-	Process(input ReasonResponse) Output
+	Process(input ProcessedMessage) Output
 	Reason(input Input) *ReasonResponse
 }

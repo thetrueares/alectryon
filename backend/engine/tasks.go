@@ -27,3 +27,19 @@ func ConvertTaskResponseToTask(taskResponse TaskResponse) *entities.TaskEntity {
 		RequiredInformation: taskResponse.RequiredInformation,
 	}
 }
+
+func AppendTaskWorkOutput(task *entities.TaskEntity, taskwork TaskWorkOutput) *entities.TaskEntity {
+	embedded := entities.EmbeddedTaskWorkOutput{
+		Content:  taskwork.Content,
+		Complete: taskwork.Complete,
+		NextStep: taskwork.NextStep,
+	}
+	task.TaskWorkOutput = append(task.TaskWorkOutput, embedded)
+	return task
+}
+
+type TaskWorkOutput struct {
+	Content  string `json:"content"`
+	Complete bool   `json:"complete"`
+	NextStep string `json:"next_step"`
+}

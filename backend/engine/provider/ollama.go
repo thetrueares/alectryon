@@ -44,34 +44,30 @@ type Ollama struct {
 	logger *zap.Logger
 }
 
-func (oa Ollama) Process(input engine.ReasonResponse) engine.Output {
-	stream := false
+func (oa Ollama) Process(input engine.ProcessedMessage) engine.Output {
+
 	var output engine.Output
+	encodedStruct, err := json.Marshal(input)
 
-	var messages []ollama.Message
-
-	for _, msg := range input.History {
-		msgObj := ollama.Message{
-			Role:    msg.Role,
-			Content: msg.Content,
-		}
-		messages = append(messages, msgObj)
+	if err != nil {
+		oa.logger.Error(fmt.Sprintf("[Ollama] json encoding failure \"%s\"\r\n", err.Error()))
+		output.Text = "An error happened during json encoding"
+		return output
 	}
 
-	last := ollama.Message{
-		Role:    "user",
-		Content: input.Latest,
-	}
-	messages = append(messages, last)
-	request := &ollama.ChatRequest{
-		Model:    MODEL_NAME,
-		Messages: messages,
-		Stream:   &stream,
-		Think:    &ollama.ThinkValue{Value: "high"},
+	prompt := fmt.Sprintf(engine.PromptOutput, string(encodedStruct))
+	generateRequest := newGenerateRequest(prompt)
+	jsonRequest, err := json.Marshal(generateRequest)
+
+	if err != nil {
+		oa.logger.Error(fmt.Sprintf("[Ollama] json marshalling error: \"%s\"\r\n", err.Error()))
+		output.Text = "An error happened during json encoding for the json request to ollama"
+		return output
 	}
 
-	err := oa.client.Chat(context.TODO(), request, func(resp ollama.ChatResponse) error {
-		output.Text += resp.Message.Content
+	oa.logger.Info(fmt.Sprintf("[Ollama] json request \"%s\"\r\n", string(jsonRequest)))
+	err = oa.client.Generate(context.TODO(), generateRequest, func(resp ollama.GenerateResponse) error {
+		output.Text += resp.Response
 		return nil
 	})
 
