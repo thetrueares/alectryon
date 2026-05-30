@@ -13,7 +13,7 @@ func TestConvertTaskResponseToTask(t *testing.T) {
 		Type:                entities.ProvideInformationTask,
 		Description:         "Tell someone the time",
 		ID:                  "6a12aeb6492aa2fc2671836a",
-		RequiredInformation: map[string]string{},
+		RequiredInformation: map[string]entities.EmbeddedRequiredInformationData{},
 	}
 
 	taskEntity := engine.ConvertTaskResponseToTask(taskResponse)
