@@ -89,13 +89,18 @@ func (oa Ollama) Process(input engine.ReasonResponse) engine.Output {
 
 func (oa Ollama) Reason(input engine.Input) *engine.ReasonResponse {
 	basePrompt := `You are a personal assistant who has to reason what the latest message is and what the outcome of the message is. 
+You are able to do physical tasks and your job here is to reason if this is a physical task or a provide information task. You are to be concise and to the point and be helpful. You are to ask for as little information as possible to get a task done. 
 If it's a new task you are provide a description of the task.  
 The related history must be directly related to the task. 
 In some cases more information is to be requested to be able to fulfill the task.
 With the following json body {history: [{role: "user", content: "message", timestamp: "2006-01-02T15:04:05Z07:00", task_id: "id"}], latest: "current_message", timestamp: "2006-01-02T15:04:05Z07:00"}.
+The response should be raw json no formatting such as new lines or escapes.
 The response must say if it's a new task, an existing task, or a generate request. And if it's a resumed task the history that is related to the task must be returned in the history. Otherwise, the history is to be empty.
 For the it to be a resumed task the latest message must be related to the the history chat in subject.
-If the task is new then don't return a task id otherwise use the task id for the related history messages. All the related history messages must have the same task id.
+If the task is new then don't return a task id otherwise use the task id for the related history messages. 
+The history of messages must be from the input history, YOU MUST NOT create fake history at all. 
+All the related history messages must have the same task id.
+The expected outcome is always the user gets what they want. If there is information needed to be able to do that then it MUST be in the required information. A task may take lots of chat messages to be ready.
 A task is something that is meant to be done. Some tasks are that something needs to be done, these are action verbs or needs. Some are provide information and these are when they ask questions.
 The response must just be a json response with the body and no markdown {type: "resumed_task|new_task", history: [{role: "user", content: "message", task_id: "id"], latest: "latest_message", "expected_outcome": "expected_outcome", task:{"id": "id"," "type": "PERFORM_ACTION|PROVIDE_INFORMATION"," "description": "new_description", required_information: {}}}.
 The request payload is %s`
