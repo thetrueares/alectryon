@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"slices"
 	"time"
 
@@ -92,7 +91,7 @@ func (oa Ollama) Reason(input engine.Input) *engine.ReasonResponse {
 	basePrompt := `You are a personal assistant who has to reason what the latest message is and what the outcome of the message is. 
 If it's a new task you are provide a description of the task.  
 The related history must be directly related to the task. 
-In some cases more information is to be requested to be able to fullfil the task.
+In some cases more information is to be requested to be able to fulfill the task.
 With the following json body {history: [{role: "user", content: "message", timestamp: "2006-01-02T15:04:05Z07:00", task_id: "id"}], latest: "current_message", timestamp: "2006-01-02T15:04:05Z07:00"}.
 The response must say if it's a new task, an existing task, or a generate request. And if it's a resumed task the history that is related to the task must be returned in the history. Otherwise, the history is to be empty.
 For the it to be a resumed task the latest message must be related to the the history chat in subject.
@@ -110,14 +109,14 @@ The request payload is %s`
 	encodedStruct, err := json.Marshal(reasonRequest)
 
 	if err != nil {
-		log.Printf("[Ollama] json encoding failure \"%s\"\r\n", err.Error())
+		oa.logger.Error(fmt.Sprintf("[Ollama] json encoding failure \"%s\"\r\n", err.Error()))
 
 		return nil
 	}
 
 	prompt := fmt.Sprintf(basePrompt, string(encodedStruct))
 
-	oa.logger.Info(fmt.Sprintf("[Ollama] prompt \"%s\"\r\n", prompt))
+	oa.logger.Debug(fmt.Sprintf("[Ollama] prompt \"%s\"\r\n", prompt))
 
 	stream := false
 	var output string
@@ -133,12 +132,12 @@ The request payload is %s`
 	})
 
 	if clientErr != nil {
-		oa.logger.Info(fmt.Sprintf("[Ollama] error: \"%s\"\r\n", clientErr.Error()))
+		oa.logger.Error(fmt.Sprintf("[Ollama] error: \"%s\"\r\n", clientErr.Error()))
 
 		return nil
 	}
 
-	oa.logger.Info(fmt.Sprintf("[Ollama] reason response: %s\r\n", output))
+	oa.logger.Debug(fmt.Sprintf("[Ollama] reason response: %s\r\n", output))
 
 	var reasonResp engine.ReasonResponse
 

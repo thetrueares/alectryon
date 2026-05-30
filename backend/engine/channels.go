@@ -3,6 +3,7 @@ package engine
 import (
 	"go.iain.rocks/alectryon/backend/entities"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.uber.org/zap"
 )
 
 type InputMessage struct {
@@ -28,13 +29,22 @@ func InputHandler(
 	historyRepository *entities.HistoryRepository,
 	userRepository *entities.UserRepository,
 	ai EngineInterface,
+	logger *zap.Logger,
 ) {
 	for message := range inputChan {
+		logger.Debug("Processing message", zap.Any("message", message.Content))
 		userEntity, err := userRepository.FindByChannelSender(message.Channel.Type, message.User.ChannelUserID)
 
 		if err != nil {
+			logger.Debug("Creating new user from input message")
 			userEntity = CreateUserEntityFromInputMessage(message)
-			userRepository.Save(userEntity)
+			err = userRepository.Save(userEntity)
+			if err != nil {
+				logger.Error("Error saving user to database", zap.Field{
+					Key:    "error",
+					String: err.Error(),
+				})
+			}
 		}
 
 		history := entities.NewInwardMessage(userEntity, message.Content)
@@ -45,12 +55,19 @@ func InputHandler(
 			ID:          bson.ObjectID([]byte(aiOutput.Task.ID)),
 			Description: aiOutput.Task.Description,
 		}
-		historyRepository.Save(history)
+		err = historyRepository.Save(history)
 
+		if err != nil {
+			logger.Error("Error saving history to database", zap.Field{
+				Key:    "error",
+				String: err.Error(),
+			})
+		}
 		outputMessage := OutputMessage{
 			Content:   aiOutput.Text,
 			InputUser: message.User,
 		}
+		logger.Debug("Sending output message", zap.Any("content", outputMessage.Content))
 		message.SenderHandler <- outputMessage
 	}
 }

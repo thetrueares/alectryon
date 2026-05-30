@@ -42,6 +42,8 @@ type Engine struct {
 }
 
 func (e Engine) Process(in Input) Output {
+	e.logger.Info("Processing input", zap.String("input", in.Text))
+
 	in.History, _ = e.historyRepository.GetLastTenForUser(in.User)
 
 	resp := e.ai.Reason(in)
@@ -49,9 +51,11 @@ func (e Engine) Process(in Input) Output {
 	if resp.Type == NewTaskAction {
 		taskEntity := ConvertTaskResponseToTask(resp.Task)
 		err := e.taskRepository.Save(taskEntity)
+
 		if err != nil {
-			e.logger.Error(err.Error())
+			e.logger.Error("Error saving task to database", zap.Any("error", err.Error()))
 		}
+
 		resp.Task.ID = taskEntity.ID.Hex()
 	}
 

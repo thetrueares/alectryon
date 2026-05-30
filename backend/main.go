@@ -56,7 +56,7 @@ func main() {
 	inputChan := make(chan engine.InputMessage)
 
 	go channels.StartChannels(channelRepository, inputChan, logger)
-	go engine.InputHandler(inputChan, historyRepository, userRepository, engineObj)
+	go engine.InputHandler(inputChan, historyRepository, userRepository, engineObj, logger)
 	r.Run(":8080")
 }
 
