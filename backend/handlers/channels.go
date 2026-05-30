@@ -49,7 +49,7 @@ func (lh ChannelHandlers) AddHandlers(r *gin.Engine) {
 
 	r.GET("/channels", lh.ListChannelHandler)
 	r.POST("/channels", lh.CreateChannelHandler)
-	r.POST("/channels/:id/toggle", lh.ToogleChannelHandler)
+	r.POST("/channels/:id/toggle", lh.ToggleChannelHandler)
 	r.GET("/channels/:id", lh.FetchChannelHandler)
 	r.POST("/channels/:id", lh.UpdateChannelHandler)
 	r.DELETE("/channels/:id", lh.DeleteChannelHandler)
@@ -140,7 +140,7 @@ func (lh ChannelHandlers) UpdateChannelHandler(c *gin.Context) {
 	})
 }
 
-func (lh ChannelHandlers) ToogleChannelHandler(c *gin.Context) {
+func (lh ChannelHandlers) ToggleChannelHandler(c *gin.Context) {
 	id := c.Param("id")
 	input, err := lh.repository.GetById(id)
 
